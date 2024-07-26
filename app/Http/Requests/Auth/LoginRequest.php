@@ -11,6 +11,8 @@ use Illuminate\Validation\ValidationException;
 
 class LoginRequest extends FormRequest
 {
+
+    protected string $inputType;
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -27,7 +29,8 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'email' => ['required_without:username', 'string', 'email', 'exists:users,email'],
+            'username' => ['required_without:email', 'string', 'exists:users,username'],
             'password' => ['required', 'string'],
         ];
     }
@@ -41,11 +44,11 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        if (! Auth::attempt($this->only($this->inputType, 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
+                $this->inputType => trans('auth.failed'),
             ]);
         }
 
@@ -81,5 +84,11 @@ class LoginRequest extends FormRequest
     public function throttleKey(): string
     {
         return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
+    }
+
+    protected function prepareForValidation()
+    {
+        $this->inputType = filter_var($this-> input('input_type'), FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+        $this->merge([$this->inputType => $this->input('input_type')]);
     }
 }
