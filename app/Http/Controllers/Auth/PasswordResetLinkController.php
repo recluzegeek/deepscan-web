@@ -29,15 +29,19 @@ class PasswordResetLinkController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $input_type = filter_var($request->input('input_type'), FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+        $request->merge([$input_type => $request->input('input_type')]);
+
         $request->validate([
-            'email' => 'required|email',
+            'email' => 'required_without:username|email|exists:users,email',
+            'username' => 'required_without:email|string|exists:users,username',
         ]);
 
         // We will send the password reset link to this user. Once we have attempted
         // to send the link, we will examine the response then see the message we
         // need to show to the user. Finally, we'll send out a proper response.
         $status = Password::sendResetLink(
-            $request->only('email')
+            $request->only($input_type)
         );
 
         if ($status == Password::RESET_LINK_SENT) {
@@ -45,7 +49,7 @@ class PasswordResetLinkController extends Controller
         }
 
         throw ValidationException::withMessages([
-            'email' => [trans($status)],
+            $input_type => [trans($status)],
         ]);
     }
 }
