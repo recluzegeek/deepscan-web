@@ -25,9 +25,9 @@ return new class extends Migration
         Schema::create('uploaded_videos', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('filename');
-            $table->string('video_storage_path');
+            $table->string('path');
             $table->string('status');
-            $table->string('upload_date_time');
+            $table->timestamps();
             $table->foreignUuid('user_id')->nullable()->index()->constrained('users');
         });
 
