@@ -23,6 +23,7 @@ use Illuminate\Notifications\Notifiable;
      */
     protected $fillable = [
         'name',
+        'username',
         'email',
         'password',
     ];
