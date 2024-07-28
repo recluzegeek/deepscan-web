@@ -21,7 +21,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-
         ResetPassword::createUrlUsing(function (User $user, string $token) {
             return 'http//deepscan.local:8000/reset-password/'.$token;
         });

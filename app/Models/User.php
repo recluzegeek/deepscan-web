@@ -3,16 +3,15 @@
 namespace App\Models;
 
  use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Support\Str;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+ use Illuminate\Database\Eloquent\Concerns\HasUuids;
+ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+ use Illuminate\Support\Str;
 
-class User extends Authenticatable implements MustVerifyEmail
+ class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable, HasUuids;
-
 
     protected $keyType = 'string';
     public $incrementing = false;
@@ -52,12 +51,13 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
-    protected static function boot()
-    {
-        parent::boot();
+     protected static function boot()
+     {
+         parent::boot();
 
-        static::creating(function ($user) {
-            $user->id = (string) Str::uuid();
-        });
-    }
-}
+         static::creating(function ($user) {
+             $user->id = (string) Str::uuid();
+         });
+     }
+
+ }

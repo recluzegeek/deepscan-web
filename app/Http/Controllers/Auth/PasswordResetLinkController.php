@@ -6,16 +6,20 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
-use Illuminate\View\View;
+use Illuminate\Validation\ValidationException;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class PasswordResetLinkController extends Controller
 {
     /**
      * Display the password reset link request view.
      */
-    public function create(): View
+    public function create(): Response
     {
-        return view('auth.forgot-password');
+        return Inertia::render('Auth/ForgotPassword', [
+            'status' => session('status'),
+        ]);
     }
 
     /**
@@ -29,8 +33,8 @@ class PasswordResetLinkController extends Controller
         $request->merge([$input_type => $request->input('input_type')]);
 
         $request->validate([
-            'email' => ['required_without:username', 'email', 'exists:users,email'],
-            'username' => ['required_without:email', 'string', 'exists:users,username'],
+            'email' => 'required_without:username|email|exists:users,email',
+            'username' => 'required_without:email|string|exists:users,username',
         ]);
 
         // We will send the password reset link to this user. Once we have attempted
@@ -40,9 +44,12 @@ class PasswordResetLinkController extends Controller
             $request->only($input_type)
         );
 
-        return $status == Password::RESET_LINK_SENT
-                    ? back()->with('status', __($status))
-                    : back()->withInput($request->only($input_type))
-                            ->withErrors([$input_type => __($status)]);
+        if ($status == Password::RESET_LINK_SENT) {
+            return back()->with('status', __($status));
+        }
+
+        throw ValidationException::withMessages([
+            $input_type => [trans($status)],
+        ]);
     }
 }
