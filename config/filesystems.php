@@ -44,6 +44,22 @@ return [
             'throw' => false,
         ],
 
+        'uploaded_videos' => [
+            'driver' => 'local',
+            'root' => storage_path('app/videos'),
+            'url' => env('APP_URL').'/storage',
+            'visibility' => 'public',
+            'throw' => false,
+        ],
+
+        'frames' => [
+            'driver' => 'local',
+            'root' => storage_path('app/frames'),
+            'url' => env('APP_URL').'/storage',
+            'visibility' => 'private',
+            'throw' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

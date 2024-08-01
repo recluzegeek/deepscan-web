@@ -9,7 +9,8 @@ class VideoUploadRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'video' => 'required|mimetypes:video/mp4,video/x-msvideo,video/x-matroska,video/x-flv|max:10240',
+//            'video' => 'required|mimetypes:video/mp4,video/x-msvideo,video/x-matroska,video/x-flv|max:10240',
+            'video' => 'required',
         ];
     }
 

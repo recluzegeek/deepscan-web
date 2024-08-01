@@ -39,7 +39,7 @@ return [
     |
     */
 
-    'debug' => (bool) env('APP_DEBUG', false),
+    'debug' => (bool)env('APP_DEBUG', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -122,5 +122,16 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
+
+//    php artisan optimize:clear
+//    php artisan config:cache
+
+//    'providers' => [
+//        ProtoneMedia\LaravelFFMpeg\Support\ServiceProvider::class,
+//    ],
+//
+//    'aliases' => [
+//        'FFMpeg' => ProtoneMedia\LaravelFFMpeg\Support\FFMpeg::class
+//    ]
 
 ];
