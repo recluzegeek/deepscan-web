@@ -77,7 +77,8 @@ function submit() {
             form.reset();
             success_flash_message.value = response.props.flash.message
             setTimeout(() => success_flash_message.value = '', 5000);
-        }
+        },
+        preserveScroll: true,
     });
 }
 
@@ -93,7 +94,13 @@ function handleFileChange(event) {
 }
 
 function updateFileList(newFiles) {
-    form.video = [...form.video, ...new Set(newFiles)]
+    const existingFileNames = new Set(form.video.map(file => file.name + file.size));
+
+    // Filter out duplicates
+    const uniqueFiles = newFiles.filter(file => !existingFileNames.has(file.name + file.size));
+
+    // Update the list with unique files
+    form.video = [...form.video, ...uniqueFiles];
 }
 
 function handleDragOver(event) {
