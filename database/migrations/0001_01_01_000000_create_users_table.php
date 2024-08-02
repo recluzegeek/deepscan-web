@@ -33,7 +33,7 @@ return new class extends Migration
 
         Schema::create('video_results', function (Blueprint $table){
             $table->uuid('id')->primary();
-            $table->integer('predicted_class');
+            $table->string('predicted_class');
             $table->float('prediction_probability');
             $table->foreignUuid('video_id')->nullable()->index()->constrained('uploaded_videos');
         });

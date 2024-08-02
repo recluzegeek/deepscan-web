@@ -20,7 +20,7 @@ class VideoUploadController extends Controller
 
             $video_path = Storage::disk('uploaded_videos')->put('', $file);
 
-            Video::create([
+            $video = Video::create([
                 'filename' => $file->getClientOriginalName(),
                 'path' => $video_path,
                 'status' => 'new',
@@ -30,7 +30,7 @@ class VideoUploadController extends Controller
             // Chain the jobs
             Bus::chain([
                 new FrameExtractionJob($video_path),
-                new PostVideoForInferenceJob($video_path),
+                new PostVideoForInferenceJob($video_path, $video->id),
             ])->onQueue('deepscan_model')->dispatch();
 
         }
