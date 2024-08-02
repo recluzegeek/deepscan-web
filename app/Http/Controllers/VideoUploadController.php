@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\VideoUploadRequest;
 use App\Jobs\FrameExtractionJob;
+use App\Jobs\PostVideoForInferenceJob;
 use App\Models\Video;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
 
 class VideoUploadController extends Controller
@@ -25,7 +27,12 @@ class VideoUploadController extends Controller
                 'user_id' => Auth::id()
             ]);
 
-            dispatch(new FrameExtractionJob($video_path));
+            // Chain the jobs
+            Bus::chain([
+                new FrameExtractionJob($video_path),
+                new PostVideoForInferenceJob($video_path),
+            ])->onQueue('deepscan_model')->dispatch();
+
         }
 
         $request->session()->flash('files_upload_success', "Files uploaded successfully!");

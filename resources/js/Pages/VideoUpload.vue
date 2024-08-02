@@ -26,7 +26,7 @@
                 <div class="mt-2 flex flex-col divide-y divide-gray-200 dark:divide-gray-800 w-3/4 overflow-y-auto">
 
                     <FileUploadList
-                        v-for="(file, index) in new Set(form.video)"
+                        v-for="(file, index) in form.video"
                         :key="index"
                         :name="file.name"
                         :index=index

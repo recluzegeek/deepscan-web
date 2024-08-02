@@ -72,6 +72,15 @@ return [
             'after_commit' => false,
         ],
 
+        'deepscan_model' => [
+            'driver' => 'redis',
+            'connection' => env('REDIS_QUEUE_CONNECTION', 'default'),
+            'queue' => env('DEEPSCAN_MODEL_QUEUE', 'deepscan_model'),
+            'retry_after' => (int) env('REDIS_QUEUE_RETRY_AFTER', 90),
+            'block_for' => null,
+            'after_commit' => false,
+        ],
+
     ],
 
     /*

@@ -56,6 +56,15 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Model API URL
+    |--------------------------------------------------------------------------
+    |
+    */
+
+    'model_api_url' => env('MODEL_API_URL', 'http://127.0.0.1:9000/upload'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |
@@ -122,16 +131,5 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
-
-//    php artisan optimize:clear
-//    php artisan config:cache
-
-//    'providers' => [
-//        ProtoneMedia\LaravelFFMpeg\Support\ServiceProvider::class,
-//    ],
-//
-//    'aliases' => [
-//        'FFMpeg' => ProtoneMedia\LaravelFFMpeg\Support\FFMpeg::class
-//    ]
 
 ];
