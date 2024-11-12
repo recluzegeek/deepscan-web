@@ -18,31 +18,29 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->boolean('isAdmin')->default(false);
+            $table->boolean('isSubscribed')->default(false);
             $table->rememberToken();
             $table->timestamps();
         });
 
-        Schema::create('uploaded_videos', function (Blueprint $table) {
+        Schema::create('videos', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('filename');
-            $table->string('path');
-            $table->string('status');
+            $table->string('video_path');
+            $table->string('video_status');
+            $table->string('predicted_class')->nullable();
+            $table->float('prediction_probability')->nullable();
             $table->timestamps();
-            $table->foreignUuid('user_id')->nullable()->index()->constrained('users');
+            $table->foreignUuid('user_id')->nullable()->index()->constrained('users')->onDelete('cascade');
         });
 
-        Schema::create('video_results', function (Blueprint $table){
-            $table->uuid('id')->primary();
-            $table->string('predicted_class');
-            $table->float('prediction_probability');
-            $table->foreignUuid('video_id')->nullable()->index()->constrained('uploaded_videos');
-        });
-
-        Schema::create('video_result_reports', function (Blueprint $table){
-            $table->uuid('id')->primary();
-            $table->string('report_storage_path');
-            $table->foreignUuid('video_result_id')->nullable()->index()->constrained('video_results');
-        });
+//        Schema::create('video_results', function (Blueprint $table){
+//            $table->uuid('id')->primary();
+//            $table->string('predicted_class');
+//            $table->float('prediction_probability');
+//            $table->foreignUuid('video_id')->nullable()->index()->constrained('uploaded_videos');
+//        });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
@@ -65,11 +63,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('video_result_reports');
-        Schema::dropIfExists('video_results');
-        Schema::dropIfExists('uploaded_videos');
+//        Schema::dropIfExists('video_results');
         Schema::dropIfExists('sessions');
         Schema::dropIfExists('password_reset_tokens');
+        Schema::dropIfExists('videos');
         Schema::dropIfExists('users');
     }
 };

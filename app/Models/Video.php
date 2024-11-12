@@ -9,18 +9,20 @@ class Video extends Model
 {
     use HasUuids;
 
-    protected $table = 'uploaded_videos';
+    protected $table = 'videos';
     public $incrementing = false;
     protected $keyType = 'string';
 
     protected $fillable = [
         'filename',
-        'path',
-        'status',
+        'video_path',
+        'video_status',
         'user_id'
     ];
 
     protected $hidden = [
-      'user_id'
+      'user_id',
+        'id',
+        'video_path'
     ];
 }

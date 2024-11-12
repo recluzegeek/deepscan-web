@@ -22,8 +22,8 @@ class VideoUploadController extends Controller
 
             $video = Video::create([
                 'filename' => $file->getClientOriginalName(),
-                'path' => $video_path,
-                'status' => 'new',
+                'video_path' => $video_path,
+                'video_status' => 'queued',
                 'user_id' => Auth::id()
             ]);
 

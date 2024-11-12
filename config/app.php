@@ -61,7 +61,7 @@ return [
     |
     */
 
-    'model_api_url' => env('MODEL_API_URL', 'http://127.0.0.1:9000/upload'),
+    'model_api_url' => env('MODEL_API_URL', 'http://127.0.0.1:9010/upload'),
 
     /*
     |--------------------------------------------------------------------------
