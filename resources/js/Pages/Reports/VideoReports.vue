@@ -1,6 +1,7 @@
 <script setup>
 import {Head} from "@inertiajs/vue3";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
+import TableRow from "@/Components/TableRow.vue";
 
 defineProps({
     videos: {
@@ -21,11 +22,7 @@ defineProps({
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
-                Here lies video report tables
-
-                <ul>
-                    <li v-for="(video, index) in videos" :key="index">{{ video.filename }} - {{ video.video_status }} - {{ video.predicted_class }}</li>
-                </ul>
+                <TableRow :videos="videos" />
 
             </div>
         </div>
