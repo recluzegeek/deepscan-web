@@ -12,11 +12,11 @@ defineProps({
 </script>
 
 <template>
-    <Head title="Video Reports" />
+    <Head title="Reports" />
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">Video Reports</h2>
+            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">Reports</h2>
         </template>
 
         <div class="py-12">
