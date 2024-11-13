@@ -3,6 +3,8 @@
 namespace App\Mail;
 
 use App\Models\User;
+use App\Models\Video;
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -13,20 +15,25 @@ use Illuminate\Queue\SerializesModels;
 class VideoInferenceCompletionMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
-    private $name;
-    private $result;
-    private $probability;
-    private $filename;
+
+    private string $video_id;
+    private string $name;
+    private string $result;
+    private float $probability;
+    private string $filename;
+    private string $uploaded_on;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($name, $fileame, $result, $probability)
+    public function __construct(User $user, Video $video)
     {
-        $this->name = $name;
-        $this->result = $result;
-        $this->probability = $probability;
-        $this->filename = $fileame;
+        $this->name = $user->name;
+        $this->video_id = $video->id;
+        $this->filename = $video->filename;
+        $this->result = $video->predicted_class;
+        $this->probability = number_format($video->prediction_probability * 100, 2, '.', '');
+        $this->uploaded_on = Carbon::parse($video->created_at)->diffForHumans();
     }
 
     /**
@@ -35,7 +42,7 @@ class VideoInferenceCompletionMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Video Inference Completion Mail',
+            subject: 'Your Video Detection Results Are Ready!',
         );
     }
 
@@ -46,7 +53,14 @@ class VideoInferenceCompletionMail extends Mailable implements ShouldQueue
     {
         return new Content(
             view: 'mail.video-inference',
-            with: ['name' => $this->name,  'filename' => $this->filename,'result' => $this->result, 'probability' => $this->probability]
+            with: [
+                'name' => $this->name,
+                'filename' => $this->filename,
+                'result' => $this->result,
+                'probability' => $this->probability,
+                'uploaded_on' => $this->uploaded_on,
+                'video_id' => $this->video_id
+            ]
         );
     }
 

@@ -19,16 +19,15 @@ Route::get('/', function () {
     ]);
 });
 
-Route::post('/inference/{video_id}', function (string $video_id) {
-    $user = User::find(Video::find($video_id)->user_id);
+Route::get('/inference/{video_id}', function (string $video_id) {
     $video = Video::find($video_id);
+    $user = User::find(Video::find($video_id)->user_id);
+
     Mail::to($user->email)->queue(new VideoInferenceCompletionMail(
-        $user->name,
-        $video->filename,
-        $video->predicted_class,
-        $video->prediction_probability
+        $user,
+        $video,
     ));
-//    TODO: Cleanup this return, this return is causing the FastAPI to wait for Laravel App to notify it back upon completion
+
     return response()->json([
         'video_id' => $video_id,
         'user_id' => $user->id,
@@ -55,6 +54,7 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/videos', [VideoUploadController::class, 'store'])->name('videos.store');
     Route::get('/reports', [VideoReportController::class, 'index'])->name('reports.index');
+    Route::get('/report/{id}', [VideoReportController::class, 'show'])->name('reports.show');
 });
 
 require __DIR__.'/auth.php';
