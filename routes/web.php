@@ -19,7 +19,7 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/inference/{video_id}', function (string $video_id) {
+Route::post('/inference/{video_id}', function (string $video_id) {
     $video = Video::find($video_id);
     $user = User::find(Video::find($video_id)->user_id);
 

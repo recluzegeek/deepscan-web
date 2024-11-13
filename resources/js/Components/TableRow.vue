@@ -15,7 +15,7 @@ defineProps({
         ]
     }
 });
-// Function to format the date
+
 const formatDate = (dateString) => {
     // Get the user's local timezone
     const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -32,6 +32,11 @@ const formatDate = (dateString) => {
     return new Intl.DateTimeFormat(undefined, options).format(new Date(dateString));
 };
 
+
+
+const generateReportUrl = (reportID) => {
+    return `/report/${reportID}`
+}
 </script>
 
 <template>
@@ -80,7 +85,10 @@ const formatDate = (dateString) => {
                     <p class="block font-semibold text-sm text-slate-800">{{ index + 1 }}</p>
                 </td>
                 <td class="p-4 border-b border-slate-200 py-5">
-                    <p class="block font-semibold text-sm text-slate-800">{{ video.filename }}</p>
+                    <a :href="generateReportUrl(video.id)">
+                        <p class="block font-semibold text-sm text-slate-800">{{ video.filename }}</p>
+                    </a>
+
                 </td>
                 <td class="p-4 border-b border-slate-200 py-5">
                     <p class="text-sm text-slate-500">{{ video.video_status }}</p>
@@ -89,7 +97,7 @@ const formatDate = (dateString) => {
                     <p class="text-sm text-slate-500">{{ video.predicted_class }}</p>
                 </td>
                 <td class="p-4 border-b border-slate-200 py-5">
-                    <p class="text-sm text-slate-500">{{ video.prediction_probability }}</p>
+                    <p class="text-sm text-slate-500">{{ video.prediction_probability && `${(video.prediction_probability * 100).toFixed(3)}%` }}</p>
                 </td>
                 <td class="p-4 border-b border-slate-200 py-5">
                     <p class="text-sm text-slate-500">{{ formatDate(video.created_at) }}</p>
