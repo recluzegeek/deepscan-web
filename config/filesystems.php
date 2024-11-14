@@ -55,7 +55,15 @@ return [
         'frames' => [
             'driver' => 'local',
             'root' => storage_path('app/frames'),
-            'url' => env('APP_URL').'/storage',
+            'url' => env('APP_URL').'/storage/frames',
+            'visibility' => 'private',
+            'throw' => false,
+        ],
+
+        'gradcam_frames' => [
+            'driver' => 'local',
+            'root' => storage_path('app/frames/visualized'),
+            'url' => env('APP_URL').'/storage/frames/visualized',
             'visibility' => 'private',
             'throw' => false,
         ],
@@ -71,7 +79,6 @@ return [
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
             'throw' => false,
         ],
-
     ],
 
     /*
