@@ -1,6 +1,9 @@
 <script setup>
+import {formatDate, formatPercentage} from '@/Utils/formatters';
+import {Link} from '@inertiajs/vue3'
+
 defineProps({
-    videos:{
+    videos: {
         type: Array
     },
     tableHeaders: {
@@ -16,38 +19,18 @@ defineProps({
     }
 });
 
-const formatDate = (dateString) => {
-    // Get the user's local timezone
-    const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-    const options = {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZone: localTimeZone
-    };
-
-    return new Intl.DateTimeFormat(undefined, options).format(new Date(dateString));
-};
-
-
-
 const generateReportUrl = (reportID) => {
-    return `/report/${reportID}`
-}
+    return `/report/${reportID}`;
+};
 </script>
 
 <template>
-<!--TODO: Make the table sortable, searchable. Add pagination-->
-
-    <div class="w-full flex justify-between items-center mb-3 mt-1 pl-3 rounded-xl bg-clip-border">
-        <div>
-            <h3 class="text-lg font-semibold text-slate-800">Uploaded Video Reports</h3>
-            <p class="text-slate-500">Overview of the uploaded videos.</p>
+    <div class="w-full flex flex-col md:flex-row justify-between items-start md:items-center mb-3 mt-1 p-4 rounded-xl bg-white dark:bg-gray-800">
+        <div class="mb-4 md:mb-0">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Uploaded Video Reports</h3>
+            <p class="text-gray-500 dark:text-gray-400">Overview of the uploaded videos.</p>
         </div>
-        <div class="ml-3">
+        <div class="w-full md:w-auto">
             <div class="w-full max-w-sm min-w-[200px] relative">
                 <div class="relative">
                     <input
@@ -67,11 +50,11 @@ const generateReportUrl = (reportID) => {
         </div>
     </div>
 
-    <div class="relative flex flex-col w-full h-full overflow-scroll text-gray-700 bg-white shadow-md rounded-lg bg-clip-border">
+    <div class="relative flex flex-col w-full h-full overflow-x-auto text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 shadow-md rounded-lg">
         <table class="w-full text-left table-auto min-w-max">
             <thead>
             <tr>
-                <th class="p-4 border-b border-slate-300 bg-slate-50 border-blue-gray-100"  v-for="(header, index) in tableHeaders" :key="index">
+                <th class="p-4 border-b border-gray-200 dark:border-gray-700 bg-slate-50 border-blue-gray-100"  v-for="(header, index) in tableHeaders" :key="index">
                     <p class="block text-sm font-bold leading-none text-slate-500">
                         {{ header }}
                     </p>
@@ -81,26 +64,33 @@ const generateReportUrl = (reportID) => {
             </thead>
             <tbody>
             <tr class="hover:bg-slate-50" v-for="(video, index) in videos" :key="index">
-                <td class="p-4 border-b border-slate-200 py-5">
+                <td class="p-4 border-b border-gray-200 dark:border-gray-700 py-5">
                     <p class="block font-semibold text-sm text-slate-800">{{ index + 1 }}</p>
                 </td>
-                <td class="p-4 border-b border-slate-200 py-5">
-                    <a :href="generateReportUrl(video.id)">
-                        <p class="block font-semibold text-sm text-slate-800">{{ video.filename }}</p>
-                    </a>
+                <td class="p-4 border-b border-gray-200 dark:border-gray-700 py-5">
+                    <Link 
+                    :href="`/report/${video.id}`"
+                    class="block font-semibold text-sm text-slate-800 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                >
+                    {{ video.filename }}
+                </Link>
 
                 </td>
-                <td class="p-4 border-b border-slate-200 py-5">
-                    <p class="text-sm text-slate-500">{{ video.video_status }}</p>
+                <td class="p-4 border-b border-gray-200 dark:border-gray-700 py-5">
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ video.video_status }}</p>
                 </td>
-                <td class="p-4 border-b border-slate-200 py-5">
-                    <p class="text-sm text-slate-500">{{ video.predicted_class }}</p>
+                <td class="p-4 border-b border-gray-200 dark:border-gray-700 py-5">
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ video.predicted_class }}</p>
                 </td>
-                <td class="p-4 border-b border-slate-200 py-5">
-                    <p class="text-sm text-slate-500">{{ video.prediction_probability && `${(video.prediction_probability * 100).toFixed(3)}%` }}</p>
+                <td class="p-4 border-b border-gray-200 dark:border-gray-700 py-5">
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                        {{ formatPercentage(video.prediction_probability) }}
+                    </p>
                 </td>
-                <td class="p-4 border-b border-slate-200 py-5">
-                    <p class="text-sm text-slate-500">{{ formatDate(video.created_at) }}</p>
+                <td class="p-4 border-b border-gray-200 dark:border-gray-700 py-5">
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                        {{ formatDate(video.created_at) }}
+                    </p>
                 </td>
             </tr>
             </tbody>

@@ -22,7 +22,6 @@ class Video extends Model
 
     protected $hidden = [
       'user_id',
-        'id',
         'video_path'
     ];
 }
