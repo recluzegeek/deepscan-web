@@ -27,7 +27,7 @@ class FrameExtractionJob implements ShouldQueue
     {
         FFMpeg::fromDisk('uploaded_videos')
             ->open($this->video_path)
-            ->exportFramesByAmount(5)
+            ->exportFramesByAmount(8)
             ->toDisk('frames')
             ->save(basename($this->video_path).'_%04d.jpg');
     }
