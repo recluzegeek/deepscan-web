@@ -9,6 +9,8 @@ use App\Models\Video;
 use App\Models\User;
 use \App\Mail\VideoInferenceCompletionMail;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Response;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -56,5 +58,24 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports', [VideoReportController::class, 'index'])->name('reports.index');
     Route::get('/report/{id}', [VideoReportController::class, 'show'])->name('reports.show');
 });
+
+Route::get('/frame/{video}/{type}/{filename}', function ($video, $type, $filename) {
+    // Authorize access
+    $video = Video::findOrFail($video);
+    if (Auth::id() !== $video->user_id) {
+        abort(403);
+    }
+
+    // Determine disk based on type
+    $disk = $type === 'visualized' ? 'gradcam_frames' : 'frames';
+    
+    // Check if file exists
+    if (!Storage::disk($disk)->exists($filename)) {
+        abort(404);
+    }
+
+    // Stream the file
+    return Response::file(Storage::disk($disk)->path($filename));
+})->name('frame.show')->middleware('auth');
 
 require __DIR__.'/auth.php';

@@ -19,9 +19,6 @@ defineProps({
     }
 });
 
-const generateReportUrl = (reportID) => {
-    return `/report/${reportID}`;
-};
 </script>
 
 <template>
