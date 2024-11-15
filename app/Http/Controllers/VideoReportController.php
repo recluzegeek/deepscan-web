@@ -45,15 +45,22 @@ class VideoReportController extends Controller
         ]);
     }
 
-    public function show(Request $request, string $id){
+    public function show(Request $request, string $id)
+    {
         $report = Video::findOrFail($id);
 
-        // Ensure the video belongs to the authenticated user
         if ($report->user_id !== Auth::id()) {
             abort(403, 'Unauthorized action.');
         }
 
-        // Get all frames matching the pattern from both disks using Storage facade
+        return Inertia::render('Reports/VideoReportDetail', [
+            'report' => $report,
+            'frames' => $this->getFramePairs($report)
+        ]);
+    }
+
+    private function getFramePairs(Video $report)
+    {
         $pattern = $report->video_path . '_*.jpg';
         $original_frames = Storage::disk('frames')->files('', false);
         $visualized_frames = Storage::disk('gradcam_frames')->files('', false);
@@ -71,8 +78,8 @@ class VideoReportController extends Controller
         sort($original_frames);
         sort($visualized_frames);
 
-        // Create frame pairs for the view using the secure route
-        $frames = array_map(function ($original, $visualized) use ($report) {
+        // Create frame pairs for the view
+        return array_map(function ($original, $visualized) use ($report) {
             return [
                 'original' => route('frame.show', [
                     'video' => $report->id,
@@ -86,10 +93,5 @@ class VideoReportController extends Controller
                 ])
             ];
         }, $original_frames, $visualized_frames);
-
-        return Inertia::render('Reports/VideoReportDetail', [
-            'report' => $report,
-            'frames' => $frames
-        ]);
     }
 }
