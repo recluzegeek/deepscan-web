@@ -2,10 +2,12 @@
 import {Head} from "@inertiajs/vue3";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import TableRow from "@/Components/TableRow.vue";
+import Pagination from '@/Components/Pagination.vue';
 
 defineProps({
     videos: {
-        type: Array
+        type: Object,
+        required: true
     }
 });
 
@@ -22,7 +24,16 @@ defineProps({
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
-                <TableRow :videos="videos" />
+                <TableRow 
+                    :videos="videos.data" 
+                    :current-page="videos.current_page"
+                    :per-page="videos.per_page"
+                />
+
+                <!-- Pagination -->
+                <div class="mt-6">
+                    <Pagination :links="videos.links" />
+                </div>
 
             </div>
         </div>

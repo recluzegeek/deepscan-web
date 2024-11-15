@@ -2,9 +2,10 @@
 import {formatDate, formatPercentage} from '@/Utils/formatters';
 import {Link} from '@inertiajs/vue3'
 
-defineProps({
+const props = defineProps({
     videos: {
-        type: Array
+        type: Array,
+        required: true
     },
     tableHeaders: {
         type: Array,
@@ -16,9 +17,20 @@ defineProps({
             'Prediction Probability',
             'Upload Time'
         ]
+    },
+    currentPage: {
+        type: Number,
+        required: true
+    },
+    perPage: {
+        type: Number,
+        required: true
     }
 });
 
+const getIndex = (index) => {
+    return (props.currentPage - 1) * props.perPage + index + 1;
+};
 </script>
 
 <template>
@@ -62,7 +74,7 @@ defineProps({
             <tbody>
             <tr class="hover:bg-slate-50" v-for="(video, index) in videos" :key="index">
                 <td class="p-4 border-b border-gray-200 dark:border-gray-700 py-5">
-                    <p class="block font-semibold text-sm text-slate-800">{{ index + 1 }}</p>
+                    <p class="block font-semibold text-sm text-slate-800">{{ getIndex(index) }}</p>
                 </td>
                 <td class="p-4 border-b border-gray-200 dark:border-gray-700 py-5">
                     <Link 
