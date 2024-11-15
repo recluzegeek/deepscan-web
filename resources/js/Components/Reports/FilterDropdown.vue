@@ -25,12 +25,14 @@ const updateFilter = (value) => {
     router.get(
         route('reports.index'),
         { 
-            ...route().params,
-            [props.paramName]: value || null 
+            status: route().params.status,
+            prediction: route().params.prediction,
+            period: route().params.period,
+            [props.paramName]: value || null
         },
         {
             preserveState: true,
-            preserveScroll: true,
+            preserveScroll: false,
             replace: true
         }
     );
