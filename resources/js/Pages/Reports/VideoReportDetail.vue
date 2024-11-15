@@ -2,6 +2,7 @@
 import {Head} from "@inertiajs/vue3";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import {formatDate, formatPercentage} from '@/Utils/formatters';
+import LazyImage from '@/Components/LazyImage.vue';
 
 const props = defineProps({
     report: {
@@ -74,26 +75,24 @@ const props = defineProps({
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                     <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Frame Analysis</h3>
                     <div class="space-y-6">
-                        <template v-for="frame in frames" :key="frame.id">
+                        <template v-for="(frame, index) in frames" :key="index">
                             <div class="flex flex-col md:flex-row gap-4">
                                 <!-- Original Frame -->
-                                <div class="w-full md:w-1/2 relative group">
-                                    <img :src="frame.original"
-                                         :alt="`Frame ${frame.id}`"
-                                         class="w-full h-auto rounded-lg shadow-sm transition duration-300 group-hover:shadow-lg"/>
-                                    <span class="absolute top-2 left-2 bg-white/90 dark:bg-gray-800/90 px-3 py-1.5 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200">
-                                        Original Frame {{ frame.id }}
-                                    </span>
+                                <div class="w-full md:w-1/2">
+                                    <LazyImage
+                                        :src="frame.original"
+                                        :alt="`Original Frame ${index + 1}`"
+                                        :label="`Original Frame ${index + 1}`"
+                                    />
                                 </div>
 
                                 <!-- Visualized Frame -->
-                                <div class="w-full md:w-1/2 relative group">
-                                    <img :src="frame.visualized"
-                                         :alt="`Frame ${frame.id} Visualization`"
-                                         class="w-full h-auto rounded-lg shadow-sm transition duration-300 group-hover:shadow-lg"/>
-                                    <span class="absolute top-2 left-2 bg-white/90 dark:bg-gray-800/90 px-3 py-1.5 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200">
-                                        Grad-CAM Visualization
-                                    </span>
+                                <div class="w-full md:w-1/2">
+                                    <LazyImage
+                                        :src="frame.visualized"
+                                        :alt="`Grad-CAM Visualization ${index + 1}`"
+                                        :label="'Grad-CAM Visualization'"
+                                    />
                                 </div>
                             </div>
                         </template>
