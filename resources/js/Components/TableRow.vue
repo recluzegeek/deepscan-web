@@ -1,10 +1,24 @@
 <script setup>
-import {formatDate, formatPercentage} from '@/Utils/formatters';
-import {Link} from '@inertiajs/vue3'
+import FilterDropdown from './Reports/FilterDropdown.vue';
+import { formatDate, formatPercentage } from '@/Utils/formatters';
+import { Link } from '@inertiajs/vue3';
 
 const props = defineProps({
     videos: {
         type: Array,
+        required: true
+    },
+
+    filters: {
+        type: Object,
+        default: () => ({})
+    },
+    currentPage: {
+        type: Number,
+        required: true
+    },
+    perPage: {
+        type: Number,
         required: true
     },
     tableHeaders: {
@@ -17,16 +31,25 @@ const props = defineProps({
             'Prediction Probability',
             'Upload Time'
         ]
-    },
-    currentPage: {
-        type: Number,
-        required: true
-    },
-    perPage: {
-        type: Number,
-        required: true
     }
 });
+
+const statusOptions = [
+    { label: 'Queued', value: 'queued' },
+    { label: 'Processing', value: 'processing' },
+    { label: 'Completed', value: 'completed' }
+];
+
+const predictionOptions = [
+    { label: 'Real', value: 'real' },
+    { label: 'Fake', value: 'fake' }
+];
+
+const periodOptions = [
+    { label: 'Today', value: 'today' },
+    { label: 'This Week', value: 'week' },
+    { label: 'This Month', value: 'month' }
+];
 
 const getIndex = (index) => {
     return (props.currentPage - 1) * props.perPage + index + 1;
@@ -39,23 +62,27 @@ const getIndex = (index) => {
             <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Uploaded Video Reports</h3>
             <p class="text-gray-500 dark:text-gray-400">Overview of the uploaded videos.</p>
         </div>
-        <div class="w-full md:w-auto">
-            <div class="w-full max-w-sm min-w-[200px] relative">
-                <div class="relative">
-                    <input
-                        class="bg-white w-full pr-11 h-10 pl-3 py-2 bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-400 shadow-sm focus:shadow-md"
-                        placeholder="Search for video..."
-                    />
-                    <button
-                        class="absolute h-8 w-8 right-1 top-1 my-auto px-2 flex items-center bg-white rounded "
-                        type="button"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-8 h-8 text-slate-600">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                        </svg>
-                    </button>
-                </div>
-            </div>
+
+        <!-- Filters Section -->
+        <div class="flex flex-wrap gap-4">
+            <FilterDropdown
+                label="Filter by Status"
+                :options="statusOptions"
+                :model-value="filters.status"
+                param-name="status"
+            />
+            <FilterDropdown
+                label="Filter by Prediction"
+                :options="predictionOptions"
+                :model-value="filters.prediction"
+                param-name="prediction"
+            />
+            <FilterDropdown
+                label="Filter by Period"
+                :options="periodOptions"
+                :model-value="filters.period"
+                param-name="period"
+            />
         </div>
     </div>
 
@@ -77,7 +104,7 @@ const getIndex = (index) => {
                     <p class="block font-semibold text-sm text-slate-800">{{ getIndex(index) }}</p>
                 </td>
                 <td class="p-4 border-b border-gray-200 dark:border-gray-700 py-5">
-                    <Link 
+                    <Link
                     :href="`/report/${video.id}`"
                     class="block font-semibold text-sm text-slate-800 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                 >

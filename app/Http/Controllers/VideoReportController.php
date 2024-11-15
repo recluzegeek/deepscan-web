@@ -5,24 +5,43 @@ namespace App\Http\Controllers;
 use App\Models\Video;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Request;
 use Inertia\Inertia;
+use Illuminate\Http\Request;
 
 class VideoReportController extends Controller
 {
-    public function index(){
+    public function index(Request $request)
+    {
+        $filters = $request->only(['status', 'prediction', 'period']);
+
         return Inertia::render('Reports/VideoReportsOverview', [
+            'filters' => $filters,
             'videos' => Auth::user()->videos()
-                        ->orderBy('created_at', 'desc')
-                        ->paginate(8)
-                        ->through(fn ($video) => [
-                            'id' => $video->id,
-                            'filename' => $video->filename,
-                            'video_status' => $video->video_status,
-                            'predicted_class' => $video->predicted_class,
-                            'prediction_probability' => $video->prediction_probability,
-                            'created_at' => $video->created_at
-                        ])
+                ->when($filters['status'] ?? null, fn($query, $status) =>
+                    $query->where('video_status', $status)
+                )
+                ->when($filters['prediction'] ?? null, fn($query, $prediction) =>
+                    $query->where('predicted_class', $prediction)
+                )
+                ->when($filters['period'] ?? null, function($query, $period) {
+                    return match($period) {
+                        'today' => $query->whereDate('created_at', today()),
+                        'week' => $query->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]),
+                        'month' => $query->whereMonth('created_at', now()->month),
+                        default => $query
+                    };
+                })
+                ->orderBy('created_at', 'desc')
+                ->paginate(8)
+                ->through(fn ($video) => [
+                    'id' => $video->id,
+                    'filename' => $video->filename,
+                    'video_status' => $video->video_status,
+                    'predicted_class' => $video->predicted_class,
+                    'prediction_probability' => $video->prediction_probability,
+                    'created_at' => $video->created_at
+                ])
+                ->withQueryString()
         ]);
     }
 

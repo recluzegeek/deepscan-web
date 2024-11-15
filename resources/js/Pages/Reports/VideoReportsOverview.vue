@@ -8,6 +8,10 @@ defineProps({
     videos: {
         type: Object,
         required: true
+    },
+    filters: {
+        type: Object,
+        required: true
     }
 });
 
@@ -26,6 +30,7 @@ defineProps({
 
                 <TableRow 
                     :videos="videos.data" 
+                    :filters="filters"
                     :current-page="videos.current_page"
                     :per-page="videos.per_page"
                 />
