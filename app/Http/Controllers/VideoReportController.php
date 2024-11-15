@@ -12,7 +12,7 @@ class VideoReportController extends Controller
 {
     public function index(){
         return Inertia::render('Reports/VideoReportsOverview', [
-            'videos' => Auth::user()->videos,
+            'videos' => Auth::user()->videos()->orderBy('created_at', 'desc')->get(),
         ]);
     }
 
