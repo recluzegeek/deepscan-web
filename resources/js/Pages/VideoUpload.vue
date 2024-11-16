@@ -25,7 +25,7 @@ function validateFile(file) {
     }
 
     if (file.size > MAX_FILE_SIZE) {
-        errors.push("Video exceeds 20MB file size limit");
+        errors.push("File exceeds 20MB file size limit");
     }
 
     return errors;
@@ -47,11 +47,13 @@ function updateFileList(newFiles) {
 }
 
 function handleRemoveFile(index) {
-    const fileName = form.video[index].name;
-    form.video.splice(index, 1);
-    // Remove client errors for this file if they exist
-    if (clientErrors.value[fileName]) {
-        delete clientErrors.value[fileName];
+    if (!form.processing) {
+        const fileName = form.video[index].name;
+        form.video.splice(index, 1);
+        // Remove client errors for this file if they exist
+        if (clientErrors.value[fileName]) {
+            delete clientErrors.value[fileName];
+        }
     }
 }
 
@@ -112,10 +114,11 @@ function triggerFileInput() {
     document.getElementById('dropzone-file').click();
 }
 
-// Add this new function to handle clearing all files
 function clearAllFiles() {
-    form.video = [];
-    clientErrors.value = {}
+    if (!form.processing) {
+        form.video = [];
+        clientErrors.value = {};
+    }
 }
 </script>
 
@@ -272,20 +275,26 @@ function clearAllFiles() {
                         <button
                             @click="clearAllFiles"
                             type="button"
-                            class="p-2 text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 transition-colors duration-200"
+                            :disabled="form.processing"
+                            :class="[
+                                'p-2 transition-colors duration-200',
+                                form.processing
+                                    ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                                    : 'text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400'
+                            ]"
                             title="Clear all files"
                         >
-                            <svg 
-                                xmlns="http://www.w3.org/2000/svg" 
-                                class="h-6 w-6" 
-                                fill="none" 
-                                viewBox="0 0 24 24" 
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="h-6 w-6"
+                                fill="none"
+                                viewBox="0 0 24 24"
                                 stroke="currentColor"
                             >
-                                <path 
-                                    stroke-linecap="round" 
-                                    stroke-linejoin="round" 
-                                    stroke-width="2" 
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
                                     d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                                 />
                             </svg>
