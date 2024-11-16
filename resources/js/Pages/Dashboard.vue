@@ -36,26 +36,6 @@ defineProps({
 
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-                <!-- Welcome Card -->
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg">
-                    <div class="p-6">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                                    Upload Your Videos
-                                </h3>
-                                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                                    Upload your videos for AI-powered analysis. We support MP4, MKV, and GIF formats.
-                                </p>
-                            </div>
-                            <!-- <div class="hidden sm:block">
-                                <svg class="w-16 h-16 text-gray-400 dark:text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
-                                </svg>
-                            </div> -->
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Upload Component -->
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg">
@@ -86,7 +66,7 @@ defineProps({
                             <h4 class="font-semibold text-gray-900 dark:text-gray-100">Supported Formats</h4>
                         </div>
                         <p class="text-sm text-gray-600 dark:text-gray-400">
-                            We support MP4, MKV, and GIF formats with a maximum file size of 10MB.
+                            We support MP4, MKV, and GIF formats with a maximum file size of 20MB.
                         </p>
                     </div>
 

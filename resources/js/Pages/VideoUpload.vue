@@ -200,27 +200,55 @@ function clearAllFiles() {
                             </div>
 
                             <!-- Upload Text -->
-                            <div class="space-y-2">
-                                <p class="text-xl font-medium text-gray-700 dark:text-gray-200">
-                                    Drop your videos here
-                                </p>
-                                <p class="text-sm text-gray-500 dark:text-gray-400">
-                                    or <span class="text-indigo-500 dark:text-indigo-400">browse</span> to choose files
-                                </p>
-                                <div class="flex flex-wrap justify-center gap-2 mt-2">
-                                    <span class="px-3 py-1 text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700/50 rounded-full">
-                                        MP4
-                                    </span>
-                                    <span class="px-3 py-1 text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700/50 rounded-full">
-                                        MKV
-                                    </span>
-                                    <span class="px-3 py-1 text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700/50 rounded-full">
-                                        GIF
-                                    </span>
+                            <div class="space-y-4">
+                                <div>
+                                    <h3 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+                                        Upload your videos
+                                    </h3>
+                                    <p class="mt-1 text-base text-gray-600 dark:text-gray-400">
+                                        Drag and drop or <span class="font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500">browse</span>
+                                    </p>
                                 </div>
-                                <p class="text-xs text-gray-400 dark:text-gray-500">
-                                    Maximum file size: 20MB
-                                </p>
+
+                                <!-- Video Guidelines -->
+                                <div class="max-w-sm mx-auto space-y-3 text-sm">
+                                    <div class="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                                        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                        <span>Face centered in frame for best results</span>
+                                    </div>
+                                    <div class="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                                        <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                        </svg>
+                                        <span>Multiple faces may reduce accuracy</span>
+                                    </div>
+                                    <div class="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                        </svg>
+                                        <span>Use high-quality, uncompressed video</span>
+                                    </div>
+                                </div>
+
+                                <!-- File Type & Size Info -->
+                                <div class="space-y-3">
+                                    <div class="flex flex-wrap justify-center gap-2">
+                                        <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 rounded-full border border-indigo-100 dark:border-indigo-800">
+                                            MP4
+                                        </span>
+                                        <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 rounded-full border border-indigo-100 dark:border-indigo-800">
+                                            MKV
+                                        </span>
+                                        <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 rounded-full border border-indigo-100 dark:border-indigo-800">
+                                            GIF
+                                        </span>
+                                    </div>
+                                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                        Maximum file size: <span class="text-indigo-600 dark:text-indigo-400">20MB</span>
+                                    </p>
+                                </div>
                             </div>
                         </div>
 
@@ -244,9 +272,23 @@ function clearAllFiles() {
                         <button
                             @click="clearAllFiles"
                             type="button"
-                            class="text-sm text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
+                            class="p-2 text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 transition-colors duration-200"
+                            title="Clear all files"
                         >
-                            Clear All
+                            <svg 
+                                xmlns="http://www.w3.org/2000/svg" 
+                                class="h-6 w-6" 
+                                fill="none" 
+                                viewBox="0 0 24 24" 
+                                stroke="currentColor"
+                            >
+                                <path 
+                                    stroke-linecap="round" 
+                                    stroke-linejoin="round" 
+                                    stroke-width="2" 
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
+                            </svg>
                         </button>
                     </div>
 
