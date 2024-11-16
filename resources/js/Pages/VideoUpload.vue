@@ -1,17 +1,87 @@
 <script setup>
-import {ref} from "vue";
+import {ref, computed} from "vue";
 import {useForm} from '@inertiajs/vue3';
 import FileUploadList from "@/Components/FileUploadList.vue";
 
 const isDragging = ref(false);
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB in bytes
+const ACCEPTED_TYPES = ['video/mp4', 'video/x-matroska', 'video/x-msvideo', 'video/x-flv'];
+
 const form = useForm({
     video: [],
-    progress: null,
-    fileErrors: {}
+    progress: null
 });
 
 const success_flash_message = ref('');
-const error_messages = ref('');
+const error_messages = ref([]);
+const clientErrors = ref({}); // client-side validation errors
+
+// Helper function to validate a single file
+function validateFile(file) {
+    const errors = [];
+    
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+        errors.push("Video must be in a valid format (MP4, MKV, AVI, FLV)");
+    }
+    
+    if (file.size > MAX_FILE_SIZE) {
+        errors.push("Video exceeds 20MB file size limit");
+    }
+    
+    return errors;
+}
+
+function updateFileList(newFiles) {
+    const existingFileNames = new Set(form.video.map(file => file.name + file.size));
+    const uniqueFiles = newFiles.filter(file => !existingFileNames.has(file.name + file.size));
+    
+    // Validate each new file before adding
+    uniqueFiles.forEach(file => {
+        const fileErrors = validateFile(file);
+        if (fileErrors.length > 0) {
+            clientErrors.value[file.name] = fileErrors;
+        }
+    });
+    
+    form.video = [...form.video, ...uniqueFiles];
+}
+
+function handleRemoveFile(index) {
+    const fileName = form.video[index].name;
+    form.video.splice(index, 1);
+    // Remove client errors for this file if they exist
+    if (clientErrors.value[fileName]) {
+        delete clientErrors.value[fileName];
+    }
+}
+
+function submit() {
+    error_messages.value = []; // Clear server-side errors
+    form.post('/videos', {
+        onProgress: (progress) => {
+            form.progress = progress;
+        },
+        onSuccess: (response) => {
+            form.reset();
+            clientErrors.value = {}; // Clear client errors
+            success_flash_message.value = response.props.flash.message;
+            setTimeout(() => success_flash_message.value = '', 5000);
+        },
+        onError: (errors) => {
+            error_messages.value = Object.values(errors).flat();
+            // Auto-clear server errors after 5 seconds
+            setTimeout(() => error_messages.value = [], 5000);
+        },
+        preserveScroll: true,
+    });
+}
+
+// Computed property to check if form can be submitted
+const canSubmit = computed(() => {
+    return form.video.length > 0 && 
+           Object.keys(clientErrors.value).length === 0 && 
+           !form.processing;
+});
 
 function formatFileSize(bytes) {
     if (bytes === 0) return '0 Bytes';
@@ -21,33 +91,6 @@ function formatFileSize(bytes) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-function submit() {
-    form.post('/videos', {
-        onProgress: (progress) => {
-            form.progress = progress;
-        },
-        onSuccess: (response) => {
-            console.log('Success response:', response); // Debug success
-            form.reset();
-            form.fileErrors = {};
-            success_flash_message.value = response.props.flash.message;
-            setTimeout(() => success_flash_message.value = '', 5000);
-        },
-        onError: (errors) => {
-            console.log('Received errors:', errors); // Debug received errors
-            form.fileErrors = Object.keys(errors).reduce((acc, key) => {
-                const match = key.match(/^video\.(\d+)$/);
-                console.log('Processing key:', key, 'Match:', match); // Debug error parsing
-                if (match) {
-                    acc[match[1]] = errors[key];
-                }
-                return acc;
-            }, {});
-            console.log('Processed fileErrors:', form.fileErrors); // Debug processed errors
-        },
-        preserveScroll: true,
-    });
-}
 function handleDrop(event) {
     event.preventDefault();
     const droppedFiles = Array.from(event.dataTransfer.files);
@@ -59,23 +102,18 @@ function handleFileChange(event) {
     updateFileList(selectedFiles);
 }
 
-function updateFileList(newFiles) {
-    const existingFileNames = new Set(form.video.map(file => file.name + file.size));
-    const uniqueFiles = newFiles.filter(file => !existingFileNames.has(file.name + file.size));
-    form.video = [...form.video, ...uniqueFiles];
-    form.fileErrors = {};
-}
-
 function handleDragOver(event) {
     event.preventDefault();
 }
 
-function handleRemoveFile(index) {
-    form.video.splice(index, 1);
-}
-
 function triggerFileInput() {
     document.getElementById('dropzone-file').click();
+}
+
+// Add this new function to handle clearing all files
+function clearAllFiles() {
+    form.video = [];
+    clientErrors.value = {}
 }
 </script>
 
@@ -91,6 +129,33 @@ function triggerFileInput() {
                         <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/>
                     </svg>
                     <span class="font-medium">{{ success_flash_message }}</span>
+                </div>
+
+                <!-- Server Error Messages -->
+                <div v-if="error_messages.length > 0"
+                     class="flex items-center p-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-700/50 dark:text-red-400"
+                     role="alert">
+                    <svg class="flex-shrink-0 inline w-4 h-4 mr-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/>
+                    </svg>
+                    <div class="ml-3">
+                        <div class="font-medium">Server validation errors:</div>
+                        <ul class="mt-1.5 ml-4 list-disc list-inside">
+                            <li v-for="(error, index) in error_messages" :key="index">
+                                {{ error }}
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Client Error Messages -->
+                <div v-if="Object.keys(clientErrors).length > 0"
+                     class="flex items-center p-4 text-sm text-orange-800 rounded-lg bg-orange-50 dark:bg-gray-700/50 dark:text-orange-400"
+                     role="alert">
+                    <svg class="flex-shrink-0 inline w-4 h-4 mr-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/>
+                    </svg>
+                    <span class="font-medium">Please fix these issues before uploading</span>
                 </div>
 
                 <!-- Upload Area -->
@@ -150,7 +215,7 @@ function triggerFileInput() {
                                     </span>
                                 </div>
                                 <p class="text-xs text-gray-400 dark:text-gray-500">
-                                    Maximum file size: 10MB
+                                    Maximum file size: 20MB
                                 </p>
                             </div>
                         </div>
@@ -173,7 +238,7 @@ function triggerFileInput() {
                             Selected Files ({{ form.video.length }})
                         </h4>
                         <button
-                            @click="form.video = []"
+                            @click="clearAllFiles"
                             type="button"
                             class="text-sm text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
                         >
@@ -188,7 +253,7 @@ function triggerFileInput() {
                             :name="file.name"
                             :size="formatFileSize(file.size)"
                             :index="index"
-                            :error="form.fileErrors[index]"
+                            :errors="clientErrors[file.name]"
                             :is_form_processing="form.processing"
                             @remove-file="handleRemoveFile(index)"
                         />
@@ -217,11 +282,11 @@ function triggerFileInput() {
                         </div>
                     </div>
 
-                    <!-- Upload Button -->
+                    <!-- Update Upload Button -->
                     <div class="flex justify-end">
                         <button
                             type="submit"
-                            :disabled="form.processing || form.video.length === 0"
+                            :disabled="!canSubmit"
                             class="inline-flex items-center px-4 py-2 bg-indigo-600 dark:bg-indigo-500 border border-transparent rounded-lg font-semibold text-sm text-white dark:text-white uppercase tracking-wider hover:bg-indigo-700 dark:hover:bg-indigo-600 focus:bg-indigo-700 dark:focus:bg-indigo-600 active:bg-indigo-800 dark:active:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150 disabled:opacity-50"
                         >
                             <svg v-if="form.processing" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
