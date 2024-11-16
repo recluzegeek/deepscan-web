@@ -9,8 +9,8 @@ class VideoUploadRequest extends FormRequest
     public function rules(): array
     {
         return [
-//            'video' => 'required|mimetypes:video/mp4,video/x-msvideo,video/x-matroska,video/x-flv|max:10240',
-            'video' => 'required',
+            'video' => 'required|array',
+            'video.*' => 'required|file|mimetypes:video/mp4,video/x-matroska,video/x-msvideo,video/x-flv|max:20480',
         ];
     }
 
@@ -22,9 +22,10 @@ class VideoUploadRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'video.mimetypes' => 'The uploaded file must be a valid video format (MP4, AVI, MKV, FLV).',
-            'video.required' => 'Please upload a video file.',
-            'video.max' => 'The video file must not exceed 10 MB.',
+            'video.required' => 'Please upload at least one video file.',
+            'video.array' => 'Invalid upload format.',
+            'video.*.mimetypes' => 'Video is not a valid video format (MP4, MKV, AVI, FLV).',
+            'video.*.max' => 'Video exceed the 20MB size limit.',
         ];
     }
 }

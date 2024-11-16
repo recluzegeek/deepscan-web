@@ -1,10 +1,91 @@
+<script setup>
+import {ref} from "vue";
+import {useForm} from '@inertiajs/vue3';
+import FileUploadList from "@/Components/FileUploadList.vue";
+
+const isDragging = ref(false);
+const form = useForm({
+    video: [],
+    progress: null,
+    fileErrors: {}
+});
+
+const success_flash_message = ref('');
+const error_messages = ref('');
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+function submit() {
+    form.post('/videos', {
+        onProgress: (progress) => {
+            form.progress = progress;
+        },
+        onSuccess: (response) => {
+            console.log('Success response:', response); // Debug success
+            form.reset();
+            form.fileErrors = {};
+            success_flash_message.value = response.props.flash.message;
+            setTimeout(() => success_flash_message.value = '', 5000);
+        },
+        onError: (errors) => {
+            console.log('Received errors:', errors); // Debug received errors
+            form.fileErrors = Object.keys(errors).reduce((acc, key) => {
+                const match = key.match(/^video\.(\d+)$/);
+                console.log('Processing key:', key, 'Match:', match); // Debug error parsing
+                if (match) {
+                    acc[match[1]] = errors[key];
+                }
+                return acc;
+            }, {});
+            console.log('Processed fileErrors:', form.fileErrors); // Debug processed errors
+        },
+        preserveScroll: true,
+    });
+}
+function handleDrop(event) {
+    event.preventDefault();
+    const droppedFiles = Array.from(event.dataTransfer.files);
+    updateFileList(droppedFiles);
+}
+
+function handleFileChange(event) {
+    const selectedFiles = Array.from(event.target.files);
+    updateFileList(selectedFiles);
+}
+
+function updateFileList(newFiles) {
+    const existingFileNames = new Set(form.video.map(file => file.name + file.size));
+    const uniqueFiles = newFiles.filter(file => !existingFileNames.has(file.name + file.size));
+    form.video = [...form.video, ...uniqueFiles];
+    form.fileErrors = {};
+}
+
+function handleDragOver(event) {
+    event.preventDefault();
+}
+
+function handleRemoveFile(index) {
+    form.video.splice(index, 1);
+}
+
+function triggerFileInput() {
+    document.getElementById('dropzone-file').click();
+}
+</script>
+
 <template>
     <form @submit.prevent="submit">
         <div class="flex items-center justify-center w-full">
             <div class="w-full space-y-6">
                 <!-- Success Message -->
-                <div v-if="success_flash_message" 
-                     class="flex items-center p-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-700/50 dark:text-green-400" 
+                <div v-if="success_flash_message"
+                     class="flex items-center p-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-700/50 dark:text-green-400"
                      role="alert">
                     <svg class="flex-shrink-0 inline w-4 h-4 mr-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/>
@@ -14,13 +95,13 @@
 
                 <!-- Upload Area -->
                 <div class="flex flex-col items-center justify-center w-full">
-                    <label 
+                    <label
                         :class="[
                             'relative flex flex-col items-center justify-center w-full transition-all duration-300 ease-in-out',
                             'min-h-[300px] rounded-xl cursor-pointer',
                             'border-2 border-dashed',
-                            isDragging 
-                                ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/20' 
+                            isDragging
+                                ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/20'
                                 : 'border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50',
                             'hover:border-indigo-500 dark:hover:border-indigo-400',
                             'hover:bg-indigo-50 dark:hover:bg-indigo-950/20'
@@ -33,17 +114,17 @@
                         <div class="flex flex-col items-center justify-center p-6 text-center">
                             <!-- Upload Icon -->
                             <div class="mb-4">
-                                <svg 
-                                    class="w-16 h-16 text-gray-400 dark:text-gray-500" 
-                                    xmlns="http://www.w3.org/2000/svg" 
-                                    fill="none" 
-                                    viewBox="0 0 24 24" 
+                                <svg
+                                    class="w-16 h-16 text-gray-400 dark:text-gray-500"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
                                     stroke="currentColor"
                                 >
-                                    <path 
-                                        stroke-linecap="round" 
-                                        stroke-linejoin="round" 
-                                        stroke-width="1.5" 
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="1.5"
                                         d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"
                                     />
                                 </svg>
@@ -74,19 +155,16 @@
                             </div>
                         </div>
 
-                        <input 
-                            id="dropzone-file" 
-                            type="file" 
-                            class="hidden" 
-                            @change="handleFileChange" 
-                            multiple 
-                            accept="video/mp4,video/x-matroska,image/gif" 
+                        <input
+                            id="dropzone-file"
+                            type="file"
+                            class="hidden"
+                            @change="handleFileChange"
+                            multiple
+                            accept="video/mp4,video/x-matroska,image/gif"
                         />
                     </label>
                 </div>
-
-                <!-- Error Message -->
-                <InputError class="mt-2" :message="form.errors.video"/>
 
                 <!-- File List -->
                 <div v-if="form.video.length > 0" class="space-y-4">
@@ -94,7 +172,7 @@
                         <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100">
                             Selected Files ({{ form.video.length }})
                         </h4>
-                        <button 
+                        <button
                             @click="form.video = []"
                             type="button"
                             class="text-sm text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
@@ -110,6 +188,7 @@
                             :name="file.name"
                             :size="formatFileSize(file.size)"
                             :index="index"
+                            :error="form.fileErrors[index]"
                             :is_form_processing="form.processing"
                             @remove-file="handleRemoveFile(index)"
                         />
@@ -130,7 +209,7 @@
                             </div>
                         </div>
                         <div class="overflow-hidden h-2 mb-4 text-xs flex rounded-full bg-gray-200 dark:bg-gray-700">
-                            <div 
+                            <div
                                 class="transition-all duration-300 shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-500"
                                 :style="`width: ${form.progress.percentage}%`"
                             >
@@ -157,69 +236,3 @@
         </div>
     </form>
 </template>
-
-<script setup>
-import {ref} from "vue";
-import {useForm} from '@inertiajs/vue3';
-import InputError from "@/Components/InputError.vue";
-import FileUploadList from "@/Components/FileUploadList.vue";
-
-const isDragging = ref(false);
-const form = useForm({
-    video: [],
-    progress: null
-});
-
-const success_flash_message = ref('');
-
-function formatFileSize(bytes) {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-}
-
-function submit() {
-    form.post('/videos', {
-        onProgress: (progress) => {
-            form.progress = progress;
-        },
-        onSuccess: (response) => {
-            form.reset();
-            success_flash_message.value = response.props.flash.message;
-            setTimeout(() => success_flash_message.value = '', 5000);
-        },
-        preserveScroll: true,
-    });
-}
-
-function handleDrop(event) {
-    event.preventDefault();
-    const droppedFiles = Array.from(event.dataTransfer.files);
-    updateFileList(droppedFiles);
-}
-
-function handleFileChange(event) {
-    const selectedFiles = Array.from(event.target.files);
-    updateFileList(selectedFiles);
-}
-
-function updateFileList(newFiles) {
-    const existingFileNames = new Set(form.video.map(file => file.name + file.size));
-    const uniqueFiles = newFiles.filter(file => !existingFileNames.has(file.name + file.size));
-    form.video = [...form.video, ...uniqueFiles];
-}
-
-function handleDragOver(event) {
-    event.preventDefault();
-}
-
-function handleRemoveFile(index) {
-    form.video.splice(index, 1);
-}
-
-function triggerFileInput() {
-    document.getElementById('dropzone-file').click();
-}
-</script>
