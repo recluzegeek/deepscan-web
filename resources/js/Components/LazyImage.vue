@@ -8,47 +8,62 @@ const props = defineProps({
     },
     alt: {
         type: String,
-        required: true
+        default: ''
     },
     label: {
         type: String,
-        required: true
+        default: ''
     }
 });
 
-const isLoading = ref(true);
-const isIntersecting = ref(false);
 const imageRef = ref(null);
-
-const handleIntersection = (entries) => {
-    const [entry] = entries;
-    isIntersecting.value = entry.isIntersecting;
-};
+const isLoaded = ref(false);
+const hasError = ref(false);
 
 onMounted(() => {
-    const observer = new IntersectionObserver(handleIntersection, {
-        root: null,
-        rootMargin: '50px', // Start loading images 50px before they enter viewport
-        threshold: 0
-    });
+    const observer = new IntersectionObserver(
+        (entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting && !isLoaded.value) {
+                    loadImage();
+                    // Unobserve after starting to load
+                    observer.unobserve(entry.target);
+                }
+            });
+        },
+        {
+            rootMargin: '50px 0px', // Start loading when image is 50px from viewport
+            threshold: 0.1
+        }
+    );
 
     if (imageRef.value) {
         observer.observe(imageRef.value);
     }
-
-    // Cleanup
-    return () => {
-        if (imageRef.value) {
-            observer.unobserve(imageRef.value);
-        }
-    };
 });
+
+function loadImage() {
+    const img = new Image();
+    img.src = props.src;
+    
+    img.onload = () => {
+        isLoaded.value = true;
+    };
+    
+    img.onerror = () => {
+        hasError.value = true;
+    };
+}
 </script>
 
 <template>
-    <div ref="imageRef" class="relative group">
-        <!-- Loading Skeleton -->
-        <div v-if="isLoading" class="animate-pulse bg-gray-200 dark:bg-gray-700 rounded-lg w-full" style="padding-top: 56.25%">
+    <div class="relative rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700">
+        <!-- Placeholder/Loading State -->
+        <div 
+            v-if="!isLoaded && !hasError"
+            ref="imageRef" 
+            class="w-full aspect-video animate-pulse bg-gray-200 dark:bg-gray-700"
+        >
             <div class="absolute inset-0 flex items-center justify-center">
                 <svg 
                     class="w-12 h-12 text-gray-400 dark:text-gray-600" 
@@ -79,11 +94,10 @@ onMounted(() => {
 
         <!-- Actual Image -->
         <img
-            v-show="!isLoading"
-            :src="isIntersecting ? src : ''"
+            v-show="isLoaded"
+            :src="src"
             :alt="alt"
             class="w-full h-auto rounded-lg shadow-sm transition duration-300 group-hover:shadow-lg"
-            @load="isLoading = false"
         />
 
         <!-- Label -->
