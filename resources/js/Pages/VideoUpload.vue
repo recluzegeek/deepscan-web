@@ -13,28 +13,28 @@ const form = useForm({
 });
 
 const success_flash_message = ref('');
-const error_messages = ref([]);
-const clientErrors = ref({}); // client-side validation errors
+const server_errors = ref({}); // Store server validation errors
+const clientErrors = ref({}); // Store client validation errors
 
 // Helper function to validate a single file
 function validateFile(file) {
     const errors = [];
-    
+
     if (!ACCEPTED_TYPES.includes(file.type)) {
-        errors.push("Video must be in a valid format (MP4, MKV, AVI, FLV)");
+        errors.push("File must be a valid video format (MP4, MKV, AVI, FLV)");
     }
-    
+
     if (file.size > MAX_FILE_SIZE) {
         errors.push("Video exceeds 20MB file size limit");
     }
-    
+
     return errors;
 }
 
 function updateFileList(newFiles) {
     const existingFileNames = new Set(form.video.map(file => file.name + file.size));
     const uniqueFiles = newFiles.filter(file => !existingFileNames.has(file.name + file.size));
-    
+
     // Validate each new file before adding
     uniqueFiles.forEach(file => {
         const fileErrors = validateFile(file);
@@ -42,7 +42,7 @@ function updateFileList(newFiles) {
             clientErrors.value[file.name] = fileErrors;
         }
     });
-    
+
     form.video = [...form.video, ...uniqueFiles];
 }
 
@@ -56,21 +56,23 @@ function handleRemoveFile(index) {
 }
 
 function submit() {
-    error_messages.value = []; // Clear server-side errors
+    server_errors.value = {}; // Clear previous server errors
     form.post('/videos', {
         onProgress: (progress) => {
             form.progress = progress;
         },
         onSuccess: (response) => {
             form.reset();
-            clientErrors.value = {}; // Clear client errors
+            clientErrors.value = {};
+            server_errors.value = {};
             success_flash_message.value = response.props.flash.message;
             setTimeout(() => success_flash_message.value = '', 5000);
         },
         onError: (errors) => {
-            error_messages.value = Object.values(errors).flat();
+            // Parse server validation errors
+            server_errors.value = errors;
             // Auto-clear server errors after 5 seconds
-            setTimeout(() => error_messages.value = [], 5000);
+            setTimeout(() => server_errors.value = {}, 5000);
         },
         preserveScroll: true,
     });
@@ -78,8 +80,8 @@ function submit() {
 
 // Computed property to check if form can be submitted
 const canSubmit = computed(() => {
-    return form.video.length > 0 && 
-           Object.keys(clientErrors.value).length === 0 && 
+    return form.video.length > 0 &&
+           Object.keys(clientErrors.value).length === 0 &&
            !form.processing;
 });
 
@@ -132,7 +134,7 @@ function clearAllFiles() {
                 </div>
 
                 <!-- Server Error Messages -->
-                <div v-if="error_messages.length > 0"
+                <div v-if="Object.keys(server_errors).length > 0"
                      class="flex items-center p-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-700/50 dark:text-red-400"
                      role="alert">
                     <svg class="flex-shrink-0 inline w-4 h-4 mr-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
@@ -141,9 +143,11 @@ function clearAllFiles() {
                     <div class="ml-3">
                         <div class="font-medium">Server validation errors:</div>
                         <ul class="mt-1.5 ml-4 list-disc list-inside">
-                            <li v-for="(error, index) in error_messages" :key="index">
-                                {{ error }}
-                            </li>
+                            <template v-for="(errors, key) in server_errors" :key="key">
+                                <li v-for="(error, index) in errors" :key="`${key}-${index}`">
+                                    {{ error }}
+                                </li>
+                            </template>
                         </ul>
                     </div>
                 </div>
@@ -155,7 +159,7 @@ function clearAllFiles() {
                     <svg class="flex-shrink-0 inline w-4 h-4 mr-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/>
                     </svg>
-                    <span class="font-medium">Please fix these issues before uploading</span>
+                    <span class="font-medium">Please fix the issues before uploading</span>
                 </div>
 
                 <!-- Upload Area -->
@@ -231,7 +235,7 @@ function clearAllFiles() {
                     </label>
                 </div>
 
-                <!-- File List -->
+                <!-- File List with individual client errors -->
                 <div v-if="form.video.length > 0" class="space-y-4">
                     <div class="flex items-center justify-between">
                         <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100">
