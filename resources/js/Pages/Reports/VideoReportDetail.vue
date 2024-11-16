@@ -123,11 +123,20 @@ const statusInfo = getStatusInfo(props.report.video_status);
                         
                         <!-- Additional guidance based on status -->
                         <div class="text-sm text-gray-500 dark:text-gray-400 text-center max-w-md">
-                            <p v-if="report.video_status === 'queued'">
-                                Your video is #{{ report.queue_position }} in the queue. 
-                                Estimated processing time: {{ report.estimated_wait_time || '5-10 minutes' }}
+                            <p v-if="report.video_status === 'queued' && report.queue_info">
+                                <span v-if="report.queue_info.position === 1">
+                                    Your video is next in line for processing.
+                                </span>
+                                <span v-else>
+                                    There {{ report.queue_info.position - 1 === 1 ? 'is' : 'are' }} 
+                                    {{ report.queue_info.position - 1 }} 
+                                    {{ report.queue_info.position - 1 === 1 ? 'video' : 'videos' }} ahead of yours.
+                                </span>
+                                <br>
+                                <span class="mt-2 block">
+                                    Estimated wait time: {{ report.queue_info.estimated_time }}
+                                </span>
                             </p>
-                            <!-- Processing state now only shows the spinning icon from statusInfo -->
                         </div>
 
                         <!-- Refresh button -->

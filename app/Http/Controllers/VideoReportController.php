@@ -53,20 +53,30 @@ class VideoReportController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        // Add queue position for queued videos
-        $queuePosition = null;
-        $estimatedWaitTime = null;
+        // Calculate queue position for queued videos
+        $queueInfo = null;
         if ($video->video_status === 'queued') {
-            $queuePosition = Video::where('video_status', 'queued')
-                ->where('created_at', '<', $video->created_at)
-                ->count() + 1;
-            $estimatedWaitTime = $this->calculateEstimatedWaitTime($queuePosition);
+            // Count all videos that are:
+            // 1. Currently being processed
+            $processingCount = Video::where('video_status', 'processing')->count();
+            
+            // 2. All queued videos with ID less than current video's ID
+            // Using ID ensures correct ordering even for simultaneous uploads
+            $queuedAheadCount = Video::where('video_status', 'queued')
+                ->where('id', '<', $video->id)
+                ->count();
+
+            $totalAhead = $processingCount + $queuedAheadCount;
+
+            $queueInfo = [
+                'position' => $totalAhead + 1,
+                'estimated_time' => $this->calculateEstimatedTime($totalAhead + 1)
+            ];
         }
 
         return Inertia::render('Reports/VideoReportDetail', [
             'report' => array_merge($video->toArray(), [
-                'queue_position' => $queuePosition,
-                'estimated_wait_time' => $estimatedWaitTime,
+                'queue_info' => $queueInfo,
             ]),
             'frames' => $video->video_status === 'completed' ? $this->getFramePairs($video) : []
         ]);
@@ -125,23 +135,36 @@ class VideoReportController extends Controller
         }
     }
 
-    private function calculateEstimatedWaitTime($queuePosition)
+    private function calculateEstimatedTime($position)
     {
-        // Assuming each video takes approximately 2 minutes to process
-        $minutesPerVideo = 2;
-        $totalMinutes = $queuePosition * $minutesPerVideo;
+        // Average processing time per video (in minutes)
+        $avgProcessingTime = 2;
+        
+        // Calculate total wait time
+        $totalMinutes = $position * $avgProcessingTime;
 
-        if ($totalMinutes < 60) {
+        if ($totalMinutes < 1) {
+            return 'less than a minute';
+        } elseif ($totalMinutes === 1) {
+            return '1 minute';
+        } elseif ($totalMinutes < 60) {
             return $totalMinutes . ' minutes';
+        } else {
+            $hours = floor($totalMinutes / 60);
+            $minutes = $totalMinutes % 60;
+            
+            $timeString = '';
+            if ($hours === 1) {
+                $timeString .= '1 hour';
+            } else {
+                $timeString .= $hours . ' hours';
+            }
+            
+            if ($minutes > 0) {
+                $timeString .= ' and ' . $minutes . ' minutes';
+            }
+            
+            return $timeString;
         }
-
-        $hours = floor($totalMinutes / 60);
-        $minutes = $totalMinutes % 60;
-
-        if ($hours === 1) {
-            return "1 hour " . ($minutes > 0 ? "and $minutes minutes" : '');
-        }
-
-        return "$hours hours " . ($minutes > 0 ? "and $minutes minutes" : '');
     }
 }
