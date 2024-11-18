@@ -16,6 +16,9 @@ const success_flash_message = ref('');
 const server_errors = ref({}); // Store server validation errors
 const clientErrors = ref({}); // Store client validation errors
 
+const MAX_SIMULTANEOUS_UPLOADS = 4;
+const warningMessage = ref('');
+
 // Helper function to validate a single file
 function validateFile(file) {
     const errors = [];
@@ -34,6 +37,22 @@ function validateFile(file) {
 function updateFileList(newFiles) {
     const existingFileNames = new Set(form.video.map(file => file.name + file.size));
     const uniqueFiles = newFiles.filter(file => !existingFileNames.has(file.name + file.size));
+
+    // Check for maximum files limit
+    if (form.video.length + uniqueFiles.length > MAX_SIMULTANEOUS_UPLOADS) {
+        const remainingSlots = MAX_SIMULTANEOUS_UPLOADS - form.video.length;
+        
+        if (remainingSlots > 0) {
+            // Only take the first n files that would make total = 4
+            uniqueFiles.splice(remainingSlots);
+            warningMessage.value = `Maximum ${MAX_SIMULTANEOUS_UPLOADS} files allowed. Only first ${remainingSlots} file(s) were added.`;
+        } else {
+            warningMessage.value = `Maximum ${MAX_SIMULTANEOUS_UPLOADS} files allowed. Please remove some files before adding more.`;
+            return;
+        }
+    } else {
+        warningMessage.value = '';
+    }
 
     // Validate each new file before adding
     uniqueFiles.forEach(file => {
@@ -163,6 +182,22 @@ function clearAllFiles() {
                         <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/>
                     </svg>
                     <span class="font-medium">Please fix the issues before uploading</span>
+                </div>
+
+                <!-- Maximum Files Warning -->
+                <div v-if="warningMessage"
+                     class="flex items-center p-4 text-sm text-yellow-800 rounded-lg bg-yellow-50 dark:bg-gray-700/50 dark:text-yellow-400"
+                     role="alert">
+                    <svg
+                        class="flex-shrink-0 inline w-4 h-4 mr-3"
+                        aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                    >
+                        <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/>
+                    </svg>
+                    <span class="font-medium">{{ warningMessage }}</span>
                 </div>
 
                 <!-- Upload Area -->
