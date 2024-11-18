@@ -57,6 +57,7 @@ const submit = () => {
                     required
                     autofocus
                     autocomplete="username"
+                    placeholder="johndoe"
                 />
                 <InputError class="mt-2" :message="form.errors.email" />
                 <InputError class="mt-2" :message="form.errors.username" />
@@ -71,16 +72,17 @@ const submit = () => {
                     v-model="form.password"
                     required
                     autocomplete="current-password"
+                    placeholder="••••••••"
                 />
                 <InputError class="mt-2" :message="form.errors.password" />
             </div>
 
             <div class="flex items-center justify-between">
                 <label class="flex items-center">
-                    <Checkbox 
-                        name="remember" 
-                        v-model:checked="form.remember" 
-                        class="rounded border-gray-300 dark:border-gray-600 text-indigo-500 dark:text-indigo-400 shadow-sm focus:ring-indigo-400 dark:focus:ring-indigo-400/50 dark:focus:ring-offset-gray-800" 
+                    <Checkbox
+                        name="remember"
+                        v-model:checked="form.remember"
+                        class="rounded border-gray-300 dark:border-gray-600 text-indigo-500 dark:text-indigo-400 shadow-sm focus:ring-indigo-400 dark:focus:ring-indigo-400/50 dark:focus:ring-offset-gray-800"
                     />
                     <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">Remember me</span>
                 </label>
@@ -95,9 +97,9 @@ const submit = () => {
             </div>
 
             <div>
-                <PrimaryButton 
-                    class="w-full justify-center bg-indigo-500 dark:bg-indigo-500/90 hover:bg-indigo-600 dark:hover:bg-indigo-500" 
-                    :class="{ 'opacity-25': form.processing }" 
+                <PrimaryButton
+                    class="w-full justify-center bg-indigo-500 dark:bg-indigo-500/90 hover:bg-indigo-600 dark:hover:bg-indigo-500"
+                    :class="{ 'opacity-25': form.processing }"
                     :disabled="form.processing"
                 >
                     Log in
@@ -109,7 +111,7 @@ const submit = () => {
                     :href="route('register')"
                     class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 transition-colors duration-200"
                 >
-                    Don't have an account? 
+                    Don't have an account?
                     <span class="text-indigo-500 dark:text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300">Register</span>
                 </Link>
             </div>
