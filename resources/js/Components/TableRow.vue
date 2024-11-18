@@ -34,6 +34,17 @@ const props = defineProps({
     }
 });
 
+const statusMapping = {
+    processing: 'Analyzing',
+    queued: 'In Queue',
+    completed: 'Analysis Complete'
+};
+
+const predictionMapping = {
+    real: 'Authentic',
+    fake: 'Manipulated'
+};
+
 const statusOptions = [
     { label: 'Queued', value: 'queued' },
     { label: 'Processing', value: 'processing' },
@@ -53,6 +64,29 @@ const periodOptions = [
 
 const getIndex = (index) => {
     return (props.currentPage - 1) * props.perPage + index + 1;
+};
+
+const getStatusClasses = (status) => {
+    const baseClasses = 'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium';
+
+    const statusStyles = {
+        processing: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
+        queued: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+        completed: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400'
+    };
+
+    return `${baseClasses} ${statusStyles[status] || ''}`;
+};
+
+const getPredictedClasses = (predictedClass) => {
+    const baseClasses = 'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium';
+
+    const statusStyles = {
+        real: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+        fake: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+    };
+
+    return `${baseClasses} ${statusStyles[predictedClass] || ''}`;
 };
 </script>
 
@@ -105,18 +139,21 @@ const getIndex = (index) => {
                 </td>
                 <td class="p-4 border-b border-gray-200 dark:border-gray-700 py-5">
                     <Link
-                    :href="`/report/${video.id}`"
-                    class="block font-semibold text-sm text-slate-800 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-                >
-                    {{ video.filename }}
-                </Link>
-
+                        :href="`/report/${video.id}`"
+                        class="block font-semibold text-sm text-slate-800 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                    >
+                        {{ video.filename }}
+                    </Link>
                 </td>
                 <td class="p-4 border-b border-gray-200 dark:border-gray-700 py-5">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ video.video_status }}</p>
+                    <span :class="getStatusClasses(video.video_status)">
+                        {{ statusMapping[video.video_status] || video.video_status }}
+                    </span>
                 </td>
                 <td class="p-4 border-b border-gray-200 dark:border-gray-700 py-5">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ video.predicted_class }}</p>
+                    <span :class="getPredictedClasses(video.predicted_class)">
+                        {{ predictionMapping[video.predicted_class] || video.predicted_class }}
+                    </span>
                 </td>
                 <td class="p-4 border-b border-gray-200 dark:border-gray-700 py-5">
                     <p class="text-sm text-gray-500 dark:text-gray-400">
