@@ -32,13 +32,6 @@
                 overflow: hidden;
             }
 
-            .header {
-                background: linear-gradient(to bottom right, rgb(79 70 229 / 0.05), rgb(99 102 241 / 0.05));
-                border-bottom: 1px solid #e5e7eb;
-                padding: 1.5rem;
-                text-align: center;
-            }
-
             .logo-container {
                 display: flex;
                 align-items: center;
@@ -55,20 +48,6 @@
 
             .content {
                 padding: 1.5rem;
-            }
-
-            .title {
-                color: #111827;
-                font-size: 1.5rem;
-                font-weight: 700;
-                margin: 0;
-                line-height: 1.25;
-            }
-
-            .subtitle {
-                color: #6b7280;
-                font-size: 1rem;
-                margin-top: 0.5rem;
             }
 
             .result-box {
@@ -92,67 +71,39 @@
                 font-weight: 600;
             }
 
-            .prediction-box {
-                background: #4f46e5;
-                color: white;
-                border-radius: 0.5rem;
-                padding: 1.5rem;
-                text-align: center;
-                margin: 1.5rem 0;
-            }
-
-            .prediction-label {
-                font-size: 0.875rem;
-                font-weight: 500;
-                opacity: 0.9;
-                text-transform: uppercase;
-                letter-spacing: 0.025em;
-            }
-
-            .prediction-value {
-                font-size: 1.875rem;
-                font-weight: 700;
-                margin: 0.5rem 0;
-            }
-
-            .confidence {
-                font-size: 1rem;
-                opacity: 0.9;
-            }
-
-            .button {
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                gap: 0.5rem;
+            .primary-button {
+                display: inline-block;
                 background-color: #4f46e5;
                 color: #ffffff;
-                font-size: 0.875rem;
-                font-weight: 500;
-                padding: 0.625rem 1.25rem;
-                border-radius: 0.5rem;
+                padding: 12px 24px;
+                border-radius: 8px;
+                font-weight: 600;
+                font-size: 14px;
                 text-decoration: none;
-                border: 1px solid transparent;
-                box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-                transition: all 0.2s;
-            }
-
-            .button:hover {
-                background: #4338ca;
-            }
-
-            .footer {
-                background: #f9fafb;
-                border-top: 1px solid #e5e7eb;
-                padding: 1.5rem;
                 text-align: center;
-                font-size: 0.875rem;
-                color: #6b7280;
+                transition: background-color 0.2s;
+                margin: 24px 0;
             }
 
-            .button-container {
-                text-align: center;
-                margin-top: 2rem;
+            .primary-button:hover {
+                background-color: #4338ca;
+            }
+            .prediction-badge {
+                display: inline-block;
+                padding: 6px 12px;
+                border-radius: 9999px;
+                font-weight: 600;
+                font-size: 14px;
+                margin: 8px 0;
+            }
+            .prediction-real {
+                background-color: #dcfce7;
+                color: #166534;
+            }
+
+            .prediction-fake {
+                background-color: #fee2e2;
+                color: #991b1b;
             }
         </style>
     </head>
@@ -168,34 +119,40 @@
                         reviewed your content to determine if it contains any potential deepfake elements.</p>
                     <p>Below are the key details and results of the analysis:</p>
                     <div class="result-box">
-                        <table>
+                        <table style="width: 100%">
                             <tr>
                                 <td class="result-label">Filename:</td>
                                 <td class="result-value">{{ $filename }}</td>
                             </tr>
                             <tr>
-                                <td class="result-label">Uploaded On:</td>
+                                <td class="result-label">Uploaded:</td>
                                 <td class="result-value">{{ $uploaded_on }}</td>
                             </tr>
                             <tr>
-                                <td class="result-label">Predicted Class:</td>
-                                <td class="result-value">{{ $result }}</td>
+                                <td class="result-label">Classification:</td>
+                                <td class="result-value">
+                                    <span
+                                        class="prediction-badge {{ $result === 'real' ? 'prediction-real' : 'prediction-fake' }}">
+                                        {{ ucfirst($result) }}
+                                    </span>
+                                </td>
                             </tr>
                             <tr>
-                                <td class="result-label">Confidence Level:</td>
+                                <td class="result-label">Confidence:</td>
                                 <td class="result-value">{{ $probability }}%</td>
                             </tr>
                         </table>
                     </div>
-                    <p>While the system has classified this video as "{{ $result }}" with a {{ $probability }}%
+                    <p>While the system has classified this video as "{{ ucfirst($result) }}" with a {{ $probability }}%
                         confidence level, please keep in mind that no detection tool is perfect. There is always a
                         possibility of errors, and we encourage you to use the results as part of a broader evaluation.
                     </p>
                     <p>To explore the detailed report of your video analysis, please click the button below:</p>
-                    <a href='{{ route('reports.show', ['id' => $video_id]) }}' class="hover-bg-blue-600"
-                        style="display: inline-block; background-color: #3b82f6; margin-bottom: 24px ; padding-left: 24px; padding-right: 24px; padding-top: 16px; padding-bottom: 16px; text-align: center; font-size: 16px; font-weight: 600; text-transform: uppercase; color: #ffffff; text-decoration: none;">
-                        <span style="mso-text-raise: 16px">View Full Report</span>
-                    </a>
+                    <div style="text-align: center;">
+                        <a href="{{ route('reports.show', ['id' => $video_id]) }}" class="primary-button">
+                            View Full Report
+                        </a>
+                    </div>
                     <p>Regards,<br />Deepscan Team</p>
                 </div>
             </div>

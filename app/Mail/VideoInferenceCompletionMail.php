@@ -42,7 +42,7 @@ class VideoInferenceCompletionMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Your Video Detection Results Are Ready!',
+            subject: 'DeepScan Analysis Results',
         );
     }
 
