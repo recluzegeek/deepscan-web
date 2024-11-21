@@ -3,7 +3,6 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\VideoUploadController;
 use App\Http\Controllers\VideoReportController;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use App\Models\Video;
 use App\Models\User;
@@ -16,10 +15,8 @@ Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
     ]);
-});
+})->name('welcome');
 
 Route::post('/inference/{video_id}', function (string $video_id) {
     $video = Video::find($video_id);
@@ -68,7 +65,7 @@ Route::get('/frame/{video}/{type}/{filename}', function ($video, $type, $filenam
 
     // Determine disk based on type
     $disk = $type === 'visualized' ? 'gradcam_frames' : 'frames';
-    
+
     // Check if file exists
     if (!Storage::disk($disk)->exists($filename)) {
         abort(404);
