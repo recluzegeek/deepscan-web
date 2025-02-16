@@ -9,10 +9,11 @@ namespace App\Models;
  use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
  use Illuminate\Support\Str;
+ use Laravel\Sanctum\HasApiTokens;
 
  class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasFactory, Notifiable, HasUuids;
+    use HasFactory, Notifiable, HasUuids, HasApiTokens;
 
     protected $keyType = 'string';
     public $incrementing = false;
