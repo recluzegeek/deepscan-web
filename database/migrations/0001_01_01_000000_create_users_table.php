@@ -29,6 +29,7 @@ return new class extends Migration
             $table->string('filename');
             $table->string('video_path');
             $table->string('video_status');
+            $table->string('error_message')->nullable();
             $table->string('predicted_class')->nullable();
             $table->float('prediction_probability')->nullable();
             $table->timestamps();
