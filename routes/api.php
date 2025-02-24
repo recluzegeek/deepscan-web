@@ -4,8 +4,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use App\Models\User;
 use App\Models\Video;
+use App\Models\User;
+use \App\Mail\VideoInferenceCompletionMail;
+
 use App\Jobs\ProcessVideoJob;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\VideoProcessingController;
@@ -72,6 +74,15 @@ Route::post('/inference/{video_id}', function (Request $request, $video_id) {
             'prediction_probability' => $request->input('probability')
         ]);
 
+        // send the mail notification to user
+        $video = Video::find($video_id);
+        $user = User::find(Video::find($video_id)->user_id);
+    
+        Mail::to($user->email)->queue(new VideoInferenceCompletionMail(
+            $user,
+            $video,
+        ));
+    
     } catch (\Exception $e) {
         Log::error('Error handling video completion', [
             'video_id' => $video_id,

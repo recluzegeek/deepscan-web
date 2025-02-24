@@ -18,24 +18,24 @@ Route::get('/', function () {
     ]);
 })->name('welcome');
 
-Route::post('/inference/{video_id}', function (string $video_id) {
-    $video = Video::find($video_id);
-    $user = User::find(Video::find($video_id)->user_id);
+// Route::post('/inference/{video_id}', function (string $video_id) {
+//     $video = Video::find($video_id);
+//     $user = User::find(Video::find($video_id)->user_id);
 
-    Mail::to($user->email)->queue(new VideoInferenceCompletionMail(
-        $user,
-        $video,
-    ));
+//     Mail::to($user->email)->queue(new VideoInferenceCompletionMail(
+//         $user,
+//         $video,
+//     ));
 
-    return response()->json([
-        'video_id' => $video_id,
-        'user_id' => $user->id,
-        'user_name' => $user->name,
-        'result' => $video->predicted_class,
-        'prediction_probability' => $video->prediction_probability,
-        'user_email' => $user->email,
-    ]);
-});
+//     return response()->json([
+//         'video_id' => $video_id,
+//         'user_id' => $user->id,
+//         'user_name' => $user->name,
+//         'result' => $video->predicted_class,
+//         'prediction_probability' => $video->prediction_probability,
+//         'user_email' => $user->email,
+//     ]);
+// });
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard', [
