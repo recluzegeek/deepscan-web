@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class VideoReportController extends Controller
 {
@@ -104,7 +105,7 @@ class VideoReportController extends Controller
             });
 
             // If no frames found, return empty array
-            if (empty($original_frames) || empty($visualized_frames)) {
+            if (empty($original_frames)) {
                 return [];
             }
 
@@ -112,21 +113,43 @@ class VideoReportController extends Controller
             sort($original_frames);
             sort($visualized_frames);
 
+            Log::info('---Original Frames Sorted---'.json_encode($original_frames));
+            Log::info('---Visualized Frames Sorted---'.json_encode($visualized_frames));
+
+            // Create a map of visualized frames for quick lookup
+            $visualized_map = [];
+            foreach ($visualized_frames as $visualized) {
+                $basename = basename($visualized);
+                // Extract the frame index from the filename
+                preg_match('/_(\d+)_visualized/', $basename, $matches);
+                if (isset($matches[1])) {
+                    $index = (int) $matches[1];
+                    $visualized_map[$index] = $visualized;
+                }
+            }
+
+            Log::info('---Visualized Map---'.json_encode($visualized_map));
+
             // Create frame pairs for the view
-            return array_map(function ($original, $visualized) use ($video) {
+            return array_map(function ($original) use ($video, $visualized_map) {
+                $basename = basename($original);
+                // Extract the frame index from the filename
+                preg_match('/_(\d+)/', $basename, $matches);
+                $index = isset($matches[1]) ? (int) $matches[1] : null;
+
                 return [
                     'original' => route('frame.show', [
                         'video' => $video->id,
                         'type' => 'original',
-                        'filename' => basename($original)
+                        'filename' => $basename
                     ]),
-                    'visualized' => route('frame.show', [
+                    'visualized' => isset($visualized_map[$index]) ? route('frame.show', [
                         'video' => $video->id,
                         'type' => 'visualized',
-                        'filename' => basename($visualized)
-                    ])
+                        'filename' => basename($visualized_map[$index])
+                    ]) : asset('images/no_faces_detected.png') // Fallback to default image
                 ];
-            }, $original_frames, $visualized_frames);
+            }, $original_frames);
 
         } catch (\Exception $e) {
             // Log the error but don't expose it to the user
