@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\VideoUploadController;
+use App\Http\Controllers\VideoProcessingController;
 use App\Http\Controllers\VideoReportController;
 use Illuminate\Support\Facades\Route;
 use App\Models\Video;
@@ -51,7 +51,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::post('/videos', [VideoUploadController::class, 'store'])->name('videos.store');
+    Route::post('/videos', [VideoProcessingController::class, 'upload'])->name('videos.upload');
     Route::get('/reports', [VideoReportController::class, 'index'])->name('reports.index');
     Route::get('/report/{id}', [VideoReportController::class, 'show'])->name('reports.show');
 });
