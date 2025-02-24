@@ -44,17 +44,9 @@ return [
             'throw' => false,
         ],
 
-        'uploaded_videos' => [
+        'videos' => [
             'driver' => 'local',
-            'root' => storage_path('app/videos/uploaded_videos'),
-            'url' => env('APP_URL').'/storage',
-            'visibility' => 'public',
-            'throw' => false,
-        ],
-
-        'downloaded_videos' => [
-            'driver' => 'local',
-            'root' => storage_path('app/videos/downloaded_videos'),
+            'root' => storage_path('app/videos'),
             'url' => env('APP_URL').'/storage',
             'visibility' => 'public',
             'throw' => false,

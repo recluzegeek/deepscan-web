@@ -36,13 +36,6 @@ return new class extends Migration
             $table->foreignUuid('user_id')->nullable()->index()->constrained('users')->onDelete('cascade');
         });
 
-//        Schema::create('video_results', function (Blueprint $table){
-//            $table->uuid('id')->primary();
-//            $table->string('predicted_class');
-//            $table->float('prediction_probability');
-//            $table->foreignUuid('video_id')->nullable()->index()->constrained('uploaded_videos');
-//        });
-
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
             $table->string('token');

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\VideoUploadRequest;
+use Illuminate\Http\Request;
 use App\Jobs\DownloadVideoJob;
 use App\Jobs\FrameExtractionJob;
 use App\Models\Video;
@@ -16,7 +17,7 @@ class VideoProcessingController extends Controller
         $files = $request->file('video');
 
         foreach ($files as $file) {
-            $video_path = Storage::disk('uploaded_videos')->put('', $file);
+            $video_path = Storage::disk('videos')->put('', $file);
 
             // Create a new video record
             $video = Video::create([
@@ -27,7 +28,7 @@ class VideoProcessingController extends Controller
             ]);
 
             // Dispatch the frame extraction job
-            FrameExtractionJob::dispatch($video_path, $video->id, 'uploaded_videos');
+            FrameExtractionJob::dispatch($video_path, $video->id);
         }
 
         $request->session()->flash('files_upload_success', "Files uploaded successfully!");
@@ -61,9 +62,10 @@ class VideoProcessingController extends Controller
                 'video_status' => Video::STATUS_QUEUED,
                 'user_id' => Auth::id(),
                 'filename' => $filename,
-                'video_path' => Storage::disk('downloaded_videos')->put('', $filename)
+                'video_path' => $filename, // will be updated after download finishes
             ]);
 
+            // TODO: Move this to dedicated queue, with increased timeout
             // Queue the YouTube download job
             DownloadVideoJob::dispatch($url, $video->id, $filename);
 
