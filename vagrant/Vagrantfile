@@ -1,0 +1,53 @@
+Vagrant.configure("2") do |config|
+  config.hostmanager.enabled = true
+  config.hostmanager.manage_host = true
+
+### DB vm  ####
+  config.vm.define "db01" do |db01|
+    db01.vm.box = "centos/stream9"
+    db01.vm.hostname = "db01"
+    db01.vm.network "private_network", ip: "192.168.56.20"
+    db01.vm.provider "virtualbox" do |vb|
+     vb.memory = "600"
+   end
+    db01.vm.provision "shell", path: "mysql.sh", args: 'web01'
+  end
+
+
+### redis vm  ####
+  config.vm.define "rds01" do |rds01|
+    rds01.vm.box = "centos/stream9"
+    rds01.vm.hostname = "rds01"
+    rds01.vm.network "private_network", ip: "192.168.56.25"
+    rds01.vm.provider "virtualbox" do |vb|
+     vb.memory = "600"
+   end
+    rds01.vm.provision "shell", path: "redis.sh"
+  end
+
+end
+# ### FastAPI vm  ####
+#   config.vm.define "py01" do |py01|
+#     py01.vm.box = "centos/stream9"
+#     py01.vm.hostname = "py01"
+#     py01.vm.network "private_network", ip: "192.168.56.16"
+#     py01.vm.provider "virtualbox" do |vb|
+#      vb.memory = "600"
+#    end
+#     py01.vm.provision "shell", path: "fastapi.sh"
+#   end
+
+# ### Nginx VM ###
+#   config.vm.define "web01" do |web01|
+#     web01.vm.box = "ubuntu/jammy64"
+#     web01.vm.hostname = "web01"
+#   web01.vm.network "private_network", ip: "192.168.56.11"
+# #  web01.vm.network "public_network"
+#   web01.vm.provider "virtualbox" do |vb|
+#      vb.gui = true
+#      vb.memory = "800"
+#    end
+#   web01.vm.provision "shell", path: "nginx.sh"
+# end
+
+# end
