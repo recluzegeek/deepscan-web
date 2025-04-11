@@ -4,7 +4,7 @@ REDIS_PASSWORD="<password-needs-to-be-changed>"
 # REDIS_INTERFACE_NETWORK_OCTETS="$(hostname -I | awk '{print $2}' | cut -d'.' -f1-3).0/24"
 
 
-# sudo dnf update -y
+sudo dnf update -y
 sudo dnf install redis -y
 sudo systemctl enable redis
 sudo systemctl start redis

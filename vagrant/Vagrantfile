@@ -13,6 +13,16 @@ Vagrant.configure("2") do |config|
     db01.vm.provision "shell", path: "mysql.sh", args: 'web01'
   end
 
+### MinIO vm  ####
+  config.vm.define "minio01" do |minio01|
+    minio01.vm.box = "centos/stream9"
+    minio01.vm.hostname = "minio01"
+    minio01.vm.network "private_network", ip: "192.168.56.5"
+    minio01.vm.provider "virtualbox" do |vb|
+     vb.memory = "600"
+   end
+    minio01.vm.provision "shell", path: "minio.sh"
+  end
 
 ### redis vm  ####
   config.vm.define "rds01" do |rds01|
@@ -25,20 +35,19 @@ Vagrant.configure("2") do |config|
     rds01.vm.provision "shell", path: "redis.sh"
   end
 
-# ### FastAPI vm  ####
+### FastAPI vm  ####
   config.vm.define "py01" do |py01|
     py01.vm.box = "ubuntu/jammy64"
     py01.vm.hostname = "py01"
     py01.vm.network "private_network", ip: "192.168.56.15"
     py01.vm.provider "virtualbox" do |vb|
      vb.memory = "4096"
-     vb.cpu = 4
+     vb.cpus = 4
    end
     py01.vm.provision "shell", path: "fastapi.sh"
   end
 
-end
-# ### Nginx VM ###
+  ### Nginx VM ###
 #   config.vm.define "web01" do |web01|
 #     web01.vm.box = "ubuntu/jammy64"
 #     web01.vm.hostname = "web01"
@@ -51,4 +60,4 @@ end
 #   web01.vm.provision "shell", path: "nginx.sh"
 # end
 
-# end
+end
