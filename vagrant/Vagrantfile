@@ -25,18 +25,19 @@ Vagrant.configure("2") do |config|
     rds01.vm.provision "shell", path: "redis.sh"
   end
 
-end
 # ### FastAPI vm  ####
-#   config.vm.define "py01" do |py01|
-#     py01.vm.box = "centos/stream9"
-#     py01.vm.hostname = "py01"
-#     py01.vm.network "private_network", ip: "192.168.56.16"
-#     py01.vm.provider "virtualbox" do |vb|
-#      vb.memory = "600"
-#    end
-#     py01.vm.provision "shell", path: "fastapi.sh"
-#   end
+  config.vm.define "py01" do |py01|
+    py01.vm.box = "ubuntu/jammy64"
+    py01.vm.hostname = "py01"
+    py01.vm.network "private_network", ip: "192.168.56.15"
+    py01.vm.provider "virtualbox" do |vb|
+     vb.memory = "4096"
+     vb.cpu = 4
+   end
+    py01.vm.provision "shell", path: "fastapi.sh"
+  end
 
+end
 # ### Nginx VM ###
 #   config.vm.define "web01" do |web01|
 #     web01.vm.box = "ubuntu/jammy64"
