@@ -2,15 +2,24 @@
 
 # This script sets up a MySQL database for a Laravel application on a CentOS 7 VM.
 ROOT_DATABASE_PASS='<password-needs-to-be-changed>'
-LARAVEL_USERNAME='laravel'
-LARAVEL_PASSWORD='admin123'
+LARAVEL_DB_USERNAME='laravel'
+LARAVEL_DB_PASSWORD='admin123'
 LARAVEL_DB_NAME='deepscan'
 LARAVEL_VM_NAME="$1"  # Argument passed to the script
 
-# Update system and install required packages
-sudo yum update -y
-sudo yum install git zip unzip -y
-sudo yum install mariadb-server -y
+# Update system and install mariadb==11.8
+sudo tee /etc/yum.repos.d/MariaDB.repo > /dev/null <<EOF
+[mariadb]
+name = MariaDB
+baseurl = https://mirror.mariadb.org/yum/11.8/rhel9-amd64/
+gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
+gpgcheck=1
+enabled=1
+EOF
+
+sudo dnf update -y
+sudo dnf install git zip unzip -y
+sudo dnf install MariaDB-server -y
 
 # Start and enable MariaDB
 sudo systemctl start mariadb
@@ -18,20 +27,26 @@ sudo systemctl enable mariadb
 
 # Set the MySQL root password and clean up any unnecessary user accounts
 # similar to the mysql_secure_installation script
-sudo mysqladmin -u root password "$ROOT_DATABASE_PASS"
-sudo mysql -u root -p"$ROOT_DATABASE_PASS" -e "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1')"
-sudo mysql -u root -p"$ROOT_DATABASE_PASS" -e "DELETE FROM mysql.user WHERE User=''"
-sudo mysql -u root -p"$ROOT_DATABASE_PASS" -e "DELETE FROM mysql.db WHERE Db='test' OR Db='test\_%'"
-sudo mysql -u root -p"$ROOT_DATABASE_PASS" -e "FLUSH PRIVILEGES"
+sudo mariadb-admin -u root password "$ROOT_DATABASE_PASS"
 
-# Create the Laravel database
-sudo mysql -u root -p"$ROOT_DATABASE_PASS" -e "CREATE DATABASE IF NOT EXISTS $LARAVEL_DB_NAME"
+# Secure MariaDB using mariadb shell
+sudo mariadb -u root -p"$ROOT_DATABASE_PASS" <<SQL
+-- Remove remote root users
+DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
+-- Remove anonymous users
+DELETE FROM mysql.user WHERE User='';
+-- Remove test databases
+DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
+-- Apply changes
+FLUSH PRIVILEGES;
+SQL
 
-# Grant privileges to Laravel database user
-sudo mysql -u root -p"$ROOT_DATABASE_PASS" -e "GRANT ALL PRIVILEGES ON $LARAVEL_DB_NAME.* TO '$LARAVEL_USERNAME'@'$LARAVEL_VM_NAME' IDENTIFIED BY '$LARAVEL_PASSWORD'"
-
-# Flush privileges
-sudo mysql -u root -p"$ROOT_DATABASE_PASS" -e "FLUSH PRIVILEGES"
+# Create Laravel database
+sudo mariadb -u root -p"$ROOT_DATABASE_PASS" <<SQL
+CREATE DATABASE IF NOT EXISTS $LARAVEL_DB_NAME;
+GRANT ALL PRIVILEGES ON $LARAVEL_DB_NAME.* TO '$LARAVEL_DB_USERNAME'@'$LARAVEL_VM_NAME' IDENTIFIED BY '$LARAVEL_DB_PASSWORD';
+FLUSH PRIVILEGES;
+SQL
 
 # Restart MariaDB service to apply changes
 sudo systemctl restart mariadb

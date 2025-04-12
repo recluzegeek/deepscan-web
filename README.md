@@ -12,48 +12,19 @@ A Laravel-based web application for analyzing videos using deep learning to dete
 - Interactive report interface
   - Side-by-side frame comparison
   - Grad-CAM visualization of suspicious regions
-  - On-demand video generation
-  - Detailed analysis metrics
-- Real-time processing status updates
 
 ## Project Architecture
 
-This repository is part of a larger DeepScan ecosystem consisting of three main components:
-
-1. **DeepScan Platform** (this repo)
-   - Main web application for video upload and analysis
-   - User interface and result visualization
-   - Video processing and frame extraction
-   - Queue management and notifications
-   - Interactive report interface featuring:
-     - Side-by-side comparison of original and analyzed frames
-     - On-demand video generation of analysis results
-     - Detailed frame-by-frame analysis visualization
-     - Export and sharing capabilities
-
-2. **DeepScan API** ([deepscan-api](https://github.com/recluzegeek/deepscan-api))
-   - REST API for deepfake detection inference
-   - Receives extracted frames from the main platform
-     - Frame-by-frame deepfake probability scores
-     - Grad-CAM visualizations highlighting suspicious regions
-     - Explanation data for model decisions
-
-   - Handles model deployment and scaling
-
-3. **DeepScan Model** ([deepscan-model](https://github.com/recluzegeek/deepscan-model))
-   - Deep learning model training code
-   - Dataset preparation and preprocessing
-   - Model evaluation and validation
-   - Model interpretability and visualization tools
+This project is part of a larger ecosystem that includes three main components. The primary component is the DeepScan Platform (this repository), which provides the web interface, handles video processing and queue management, and visualizes results. The second component is the [DeepScan API](https://github.com/recluzegeek/deepscan-api), a REST service that receives extracted frames and returns deepfake probability scores, Grad-CAM overlays, and model explanations. The third is the [DeepScan Model](https://github.com/recluzegeek/deepscan-model), which contains code for training deep learning models, dataset preprocessing, evaluation, and interpretability tools.
 
 ## Tech Stack
 
-- **Backend Framework**: Laravel 11
-- **Frontend Framework**: Vue.js 3 with Inertia.js
+- **Backend Framework**: Laravel 11 with InertiaJS
+- **Frontend Framework**: Vue.js
 - **CSS Framework**: Tailwind CSS
-- **Database**: MySQL/PostgreSQL
+- **Database**: MariaDB
 - **Queue System**: Redis with Laravel Horizon
-- **File Storage**: SFTP support via Flysystem
+- **File Storage**: MinIO
 - **Video Processing**: FFmpeg integration via pbmedia/laravel-ffmpeg
 
 ## Prerequisites
@@ -63,9 +34,13 @@ This repository is part of a larger DeepScan ecosystem consisting of three main 
 - Node.js & NPM
 - Redis server
 - FFmpeg
-- MySQL/PostgreSQL
+- MariaDB >10.7 for UUID support
 
-## Installation
+## Vagrant
+
+To run DeepScan using Vagrant, install [Vagrant](https://developer.hashicorp.com/vagrant/install) and [Oracle VirtualBox](https://www.virtualbox.org/wiki/Downloads), then navigate to the vagrant directory and run `vagrant up --provision`. Once the VMs are up, you can connect via VSCode using Remote SSH. Use the `vagrant ssh-config` command to configure the SSH keys needed for the connection. A good writeup on how to setup vagrant and vscode for remote development can be found [here](https://iximiuz.com/en/posts/how-to-setup-development-environment/).
+
+## Local Installation
 
 1. Clone the repository:
 
@@ -141,22 +116,3 @@ This repository is part of a larger DeepScan ecosystem consisting of three main 
     php artisan queue:work deepscan_model
     php artisan horizon
     ```
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License.
-
-## Acknowledgments
-
-- Laravel Framework
-- Vue.js
-- Tailwind CSS
-- FFmpeg
