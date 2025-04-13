@@ -53,7 +53,7 @@ Vagrant.configure("2") do |config|
   config.vm.define "web01" do |web01|
     web01.vm.box = "ubuntu/jammy64"
     web01.vm.hostname = "web01"
-  web01.vm.network "private_network", ip: "192.168.56.11"
+  web01.vm.network "private_network", ip: "192.168.56.10"
   web01.vm.synced_folder "./secrets", "/tmp/secrets", create: true
 #  web01.vm.network "public_network"
   web01.vm.provider "virtualbox" do |vb|

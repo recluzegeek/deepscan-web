@@ -40,40 +40,60 @@ This project is part of a larger ecosystem that includes three main components. 
 
 To run DeepScan using Vagrant, install [Vagrant](https://developer.hashicorp.com/vagrant/install) and [Oracle VirtualBox](https://www.virtualbox.org/wiki/Downloads), then navigate to the vagrant directory and run `vagrant up --provision`. Once the VMs are up, you can connect via VSCode using Remote SSH. Use the `vagrant ssh-config` command to configure the SSH keys needed for the connection. A good writeup on how to setup vagrant and vscode for remote development can be found [here](https://iximiuz.com/en/posts/how-to-setup-development-environment/).
 
+> [!NOTE]
+> The Laravel application will be available at `http://192.168.56.10`, while the MinIO browser console can be accessed at `http://192.168.56.5:9001`.
+
+> [!TIP]
+> All related configuration details can be found in the `vagrant/Vagrantfile` and their corresponding provisioning bash scripts.
+
 ## Local Installation
+
+> [!TIP]
+> Feeling overwhelmed with the instructions?
+> No worries — you always have the Vagrant setup as a fallback. But if you're ready to go the manual route, here's how to install everything locally:
 
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/your-repo/deepscan.git
+   git clone https://github.com/recluzegeek/deepscan.git
    cd deepscan
    ```
 
-2. Install PHP Dependencies:
+2. Install PHP dependencies:
 
     ```bash
     composer install
     ```
 
-3. Install Javascript Dependencies:
+3. Install Javascript dependencies:
 
     ```bash
     npm install
     ```
 
-4. Create Enviornment File:
+4. Create environment file by copying `.env.example` file:
 
     ```bash
     cp .env.example .env
     ```
 
-5. Generate Application Key:
+5. Install a [Redis](https://redis.io/downloads/) client compatible with your operating system and ensure it’s running. Configure the Redis connection settings in the `.env` file.
+
+6. Set up your preferred mail service (e.g., SMTP, Mailgun, Sendmail, Mailtrap) and update the corresponding environment variables in the `.env` file.
+
+> [!IMPORTANT]
+> Make sure to update the mailer settings in your `.env` file (MAIL_HOST, MAIL_PORT, etc.) with valid credentials.
+> If left as-is or misconfigured, Laravel will default to the log mailer, and all emails will be written to `storage/logs/laravel.log` instead of being sent.
+
+7. Install [MinIO](https://min.io/open-source/download) and configure it by creating the required buckets. Generate access and secret keys, then update the corresponding values in your Laravel `.env` file.
+
+8. Generate Application key:
 
     ```bash
     php artisan key:generate
     ```
 
-6. Configure your database in `.env` file:
+9. Configure your database in `.env` file:
 
     ```env
     DB_CONNECTION=mysql
@@ -84,13 +104,13 @@ To run DeepScan using Vagrant, install [Vagrant](https://developer.hashicorp.com
     DB_PASSWORD=your_password
     ```
 
-7. Run Migrations:
+10. Run Database migrations:
 
     ```bash
     php artisan migrate
     ```
 
-8. Build Frontend Assets:
+11. Build Frontend Assets:
 
     ```bash
     npm run build
@@ -98,21 +118,20 @@ To run DeepScan using Vagrant, install [Vagrant](https://developer.hashicorp.com
 
 ## Running the Application
 
-1. Start the Development Server:
+1. Start the development server and access on `localhost:8000`:
 
     ```bash
     php artisan serve
     ```
 
-2. Start the Frontend Development Server:
+2. Start the Frontend development server:
 
     ```bash
     npm run dev
     ```
 
-3. Start the Queue Worker:
+3. Start the Laravel Horizon and can be accessed via `http://your-app-domain/horizon` or `localhost:8000/horizon`.
 
     ```bash
-    php artisan queue:work deepscan_model
     php artisan horizon
     ```

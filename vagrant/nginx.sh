@@ -3,9 +3,18 @@
 PHP_FPM_POOL_USERNAME="laravel_deepscan"
 PHP_FPM_POOL_GROUPNAME="laravel_deepscan"
 
+APP_ENV="local"
 LARAVEL_DB_USERNAME='laravel'
 LARAVEL_DB_PASSWORD='admin123'
 LARAVEL_DB_NAME='deepscan'
+
+MINIO_ACCESS_AND_SECRETS_LOCATION="/tmp/secrets/minio-keys.txt"
+SECRETS=$(cat $MINIO_ACCESS_AND_SECRETS_LOCATION)
+MINIO_ACCESS_KEY=$(echo "$SECRETS" | head -n 1) # first line is of access key
+MINIO_SECRET_KEY=$(echo "$SECRETS" | tail -n 1) # second line is of secret key
+FRAMES_BUCKET_NAME="deepscan-frames"
+GRADCAM_FRAMES_BUCKET_NAME="gradcam-deepscan-frames"
+FASTAPI_URL=$(getent hosts $1 | cut -d' ' -f1) # translates vm name to ip address via host file
 
 REDIS_PASSWORD="<password-needs-to-be-changed>"
 
@@ -74,6 +83,10 @@ npm run build
 cp .env.example .env
 
 # modify environment variables
+sed -i "s/APP_ENV=.*/APP_ENV=$APP_ENV/" .env
+# sed -i "s/APP_DEBUG=.*/APP_DEBUG=false/" .env
+sed -i "s/APP_URL=.*/APP_URL=http:\/\/$(hostname -I | cut -d' ' -f2)/" .env
+sed -i "s/MODEL_API_URL=.*/MODEL_API_URL=http:\/\/$(getent hosts $3 | cut -d' ' -f1)/" .env
 sed -i "s/DB_HOST=.*/DB_HOST=$(getent hosts $1 | cut -d' ' -f1)/" .env
 sed -i "s/DB_DATABASE=.*/DB_DATABASE=$LARAVEL_DB_NAME/" .env
 sed -i "s/DB_USERNAME=.*/DB_USERNAME=$LARAVEL_DB_USERNAME/" .env
@@ -81,8 +94,6 @@ sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=$LARAVEL_DB_PASSWORD/" .env
 
 sed -i "s/REDIS_HOST=.*/REDIS_HOST=$(getent hosts $2 | cut -d' ' -f1)/" .env
 sed -i "s/REDIS_PASSWORD=.*/REDIS_PASSWORD=$REDIS_PASSWORD/" .env
-
-sed -i "s/APP_DEBUG=.*/APP_DEBUG=false/" .env
 
 php artisan key:generate
 php artisan migrate
@@ -133,3 +144,5 @@ sudo systemctl restart nginx
 sudo systemctl status nginx
 sudo systemctl restart php8.4-fpm
 sudo systemctl status php8.4-fpm
+
+php artisan horizon
