@@ -11,6 +11,7 @@ ROOT_PASSWORD="minio_secret_key_change_me"
 MINIO_DEPLOYMENT_ALIAS="deepscan_minio"
 FRAMES_BUCKET_NAME="deepscan-frames"
 GRADCAM_FRAMES_BUCKET_NAME="deepscan-gradcam-frames"
+MINIO_ACCESS_AND_SECRETS_LOCATION="/tmp/secrets/minio-keys.txt"
 PORT=9001
 
 sudo dnf update -y
@@ -87,7 +88,7 @@ EOT
      --policy deepscan-readwrite.json \
      --name "deepscan" \
      --description "Keys for Deepscan web and FastAPI for frames storage and access remotely" \
-     | awk -F": " '{print $2}' | head -n 2 > /tmp/secret/minio-keys.txt
+     | awk -F": " '{print $2}' | head -n 2 > $MINIO_ACCESS_AND_SECRETS_LOCATION
 
 # Create bucket
 /usr/local/bin/mcli mb --region=us-east-1 $MINIO_DEPLOYMENT_ALIAS/$FRAMES_BUCKET_NAME
