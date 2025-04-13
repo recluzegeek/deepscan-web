@@ -1,10 +1,16 @@
 #!/bin/bash
+# This script installs and configures MinIO on a CentOS/RHEL system.
+# It sets up a MinIO server with specified root user and password, creates
+# a data directory, and configures the MinIO service to start on boot.
+# It also installs the MinIO client (mc) and sets up a bucket for storing
+# frames and gradcam frames. Secrets and access keys are shared across vms,
+# and a policy is created for read and write access to the specified buckets.
+
 ROOT_USER="rgk_admin"
 ROOT_PASSWORD="minio_secret_key_change_me"
-MINIO_DEPLOYMENT_ALIAS="rgk_minio"
-NORMAL_USERNAME="laravel"
-NORMAL_USER_PASSWORD="%@typicalstrongpassword:)"
-BUCKET_NAME="deepscan"
+MINIO_DEPLOYMENT_ALIAS="deepscan_minio"
+FRAMES_BUCKET_NAME="deepscan-frames"
+GRADCAM_FRAMES_BUCKET_NAME="deepscan-gradcam-frames"
 PORT=9001
 
 sudo dnf update -y
@@ -40,20 +46,52 @@ sudo systemctl daemon-reexec
 sudo systemctl daemon-reload
 sudo systemctl enable --now minio
 
-/usr/local/bin/mcli alias set $MINIO_DEPLOYMENT_ALIAS/ http://$(hostname -I | cut -d' ' -f2):9000 $ROOT_USER $ROOT_PASSWORD
+# setup minio alias
+/usr/local/bin/mcli alias set $MINIO_DEPLOYMENT_ALIAS http://$(hostname -I | cut -d' ' -f2):9000 $ROOT_USER $ROOT_PASSWORD
 
-# add less privileged minio user
-## mc admin user add ALIAS ACCESSKEY SECRETKEY
-/usr/local/bin/mcli admin user add $MINIO_DEPLOYMENT_ALIAS $NORMAL_USERNAME $NORMAL_USER_PASSWORD
+# create policy for read and write access to specific buckets
+tee deepscan-readwrite.json > /dev/null <<EOT
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "s3:GetBucketLocation",
+        "s3:ListBucket"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:s3:::${FRAMES_BUCKET_NAME}",
+        "arn:aws:s3:::${GRADCAM_FRAMES_BUCKET_NAME}"
+      ]
+    },
+    {
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:s3:::${FRAMES_BUCKET_NAME}/*",
+        "arn:aws:s3:::${GRADCAM_FRAMES_BUCKET_NAME}/*"
+      ]
+    }
+  ]
+}
+EOT
 
-# attach readwrite policy to the user
-## mc admin policy attach ALIAS readwrite --user=USERNAME
-# TODO: attach more strict policy, restricting access to specific bucket
-/usr/local/bin/mcli admin policy attach $MINIO_DEPLOYMENT_ALIAS readwrite --user=$NORMAL_USERNAME
-/usr/local/bin/mcli admin user list $MINIO_DEPLOYMENT_ALIAS
+# generate access and secret keys
+## inspired from, https://min.io/docs/minio/linux/reference/minio-mc-admin/mc-admin-accesskey-create.html
+/usr/local/bin/mcli admin accesskey create $MINIO_DEPLOYMENT_ALIAS \
+     --policy deepscan-readwrite.json \
+     --name "deepscan" \
+     --description "Keys for Deepscan web and FastAPI for frames storage and access remotely" \
+     | awk -F": " '{print $2}' | head -n 2 > /tmp/secret/minio-keys.txt
 
 # Create bucket
-/usr/local/bin/mcli mb --region=us-east-1 $MINIO_DEPLOYMENT_ALIAS/$BUCKET_NAME
+/usr/local/bin/mcli mb --region=us-east-1 $MINIO_DEPLOYMENT_ALIAS/$FRAMES_BUCKET_NAME
+/usr/local/bin/mcli mb --region=us-east-1 $MINIO_DEPLOYMENT_ALIAS/$GRADCAM_FRAMES_BUCKET_NAME
 
 # Show status
 sudo systemctl status minio
