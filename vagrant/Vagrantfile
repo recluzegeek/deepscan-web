@@ -51,16 +51,29 @@ Vagrant.configure("2") do |config|
 
   ### Nginx VM ###
   config.vm.define "web01" do |web01|
+
+    # Since rds01 needs to allow traffic from web01, but web01 isn’t up yet during rds01 provisioning,
+    # we use a trigger to run a firewall setup script *after* web01 is brought up.
+    # This ensures Redis on rds01 allows connections from web01 when nginx runs 
+    # (which includes starting Horizon and requires Redis access).
+
+    web01.trigger.after :up do |trigger|
+      trigger.info = "Configuring Redis firewall for web01"
+      trigger.run = {
+        inline: "bash redis-firewall.sh rds01 web01"
+      }
+    end
+
     web01.vm.box = "ubuntu/jammy64"
     web01.vm.hostname = "web01"
-  web01.vm.network "private_network", ip: "192.168.56.10"
-  web01.vm.synced_folder "./secrets", "/tmp/secrets", create: true
-#  web01.vm.network "public_network"
-  web01.vm.provider "virtualbox" do |vb|
-     vb.gui = true
-     vb.memory = "800"
-   end
-  web01.vm.provision "shell", path: "nginx.sh", args: ['db01', 'rds01', 'py01']
-end
+    web01.vm.network "private_network", ip: "192.168.56.10"
+    web01.vm.synced_folder "./secrets", "/tmp/secrets", create: true
+    #  web01.vm.network "public_network"
+    web01.vm.provider "virtualbox" do |vb|
+      vb.gui = true
+      vb.memory = "800"
+    end
+    web01.vm.provision "shell", path: "nginx.sh", args: ['db01', 'rds01', 'py01']
+  end
 
 end

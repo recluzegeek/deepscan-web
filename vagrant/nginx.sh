@@ -99,8 +99,19 @@ php artisan key:generate
 php artisan migrate
 
 sudo mv /tmp/deepscan-web /var/www/html/deepscan-web
-sudo chown -R www-data.www-data /var/www/html/deepscan-web/storage
-sudo chown -R www-data.www-data /var/www/html/deepscan-web/bootstrap/cache
+
+# Set ownership
+sudo chown -R www-data:www-data /var/www/html/deepscan-web/storage
+sudo chown -R www-data:www-data /var/www/html/deepscan-web/bootstrap/cache
+
+# Set directory permissions to 2775 (setgid bit + rwxrwxr-x)
+sudo find /var/www/html/deepscan-web/storage -type d -exec chmod 2775 {} +
+sudo find /var/www/html/deepscan-web/bootstrap/cache -type d -exec chmod 2775 {} +
+
+# Set file permissions to 0664 (rw-rw-r--)
+sudo find /var/www/html/deepscan-web/storage -type f -exec chmod 664 {} +
+sudo find /var/www/html/deepscan-web/bootstrap/cache -type f -exec chmod 664 {} +
+
 
 ### configuring nginx
 sudo tee /etc/nginx/sites-available/$PHP_FPM_POOL_USERNAME > /dev/null <<EOT
@@ -145,4 +156,20 @@ sudo systemctl status nginx
 sudo systemctl restart php8.4-fpm
 sudo systemctl status php8.4-fpm
 
-php artisan horizon
+# we will enable and start the service, once we have the redis server up and running. This is done
+# using vagrant after trigger which will ssh into redis and web VMs to add the necessary firewall rules
+# and start the Laravel Horizon process.
+
+sudo tee /etc/systemd/system/horizon.service > /dev/null <<EOT
+[Unit]
+Description=Laravel Horizon
+After=network.target
+
+[Service]
+User=vagrant
+ExecStart=/usr/bin/php /var/www/html/deepscan-web/artisan horizon
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOT

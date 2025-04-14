@@ -33,6 +33,7 @@ This project is part of a larger ecosystem that includes three main components. 
 - Composer
 - Node.js & NPM
 - Redis server
+- MinIO
 - FFmpeg
 - MariaDB >10.7 for UUID support
 

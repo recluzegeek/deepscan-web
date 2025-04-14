@@ -25,9 +25,6 @@ sudo sed -i "s/bind 127.0.0.1 -::1/bind $(hostname -I | awk -F' ' '{print $2}') 
 sudo systemctl restart redis
 sudo systemctl status redis
 
-## network level security
-echo "+++++++++++++++++Added firewalld rules+++++++++++++++++"
-sudo firewall-cmd --zone=public \
-    --add-rich-rule="rule family='ipv4' source address='192.168.56.20' port protocol='tcp' port='6379' accept" --permanent
-
-sudo firewall-cmd --reload
+## Firewall rules for accessing redis will be configured once the web01 vm is up, and
+## it is being done using vagrant after triggers which executes the script that ssh
+## into redis and add the firewall rules
