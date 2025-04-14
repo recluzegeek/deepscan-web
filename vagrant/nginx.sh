@@ -3,11 +3,22 @@
 PHP_FPM_POOL_USERNAME="laravel_deepscan"
 PHP_FPM_POOL_GROUPNAME="laravel_deepscan"
 
+APP_ENV="local"
 LARAVEL_DB_USERNAME='laravel'
 LARAVEL_DB_PASSWORD='admin123'
 LARAVEL_DB_NAME='deepscan'
 
+MINIO_ACCESS_AND_SECRETS_LOCATION="/tmp/secrets/minio-keys.txt"
+SECRETS=$(cat $MINIO_ACCESS_AND_SECRETS_LOCATION)
+MINIO_ACCESS_KEY=$(echo "$SECRETS" | head -n 1) # first line is of access key
+MINIO_SECRET_KEY=$(echo "$SECRETS" | tail -n 1) # second line is of secret key
+FRAMES_BUCKET_NAME="deepscan-frames"
+GRADCAM_FRAMES_BUCKET_NAME="gradcam-deepscan-frames"
+FASTAPI_URL=$(getent hosts $1 | cut -d' ' -f1) # translates vm name to ip address via host file
+
 REDIS_PASSWORD="<password-needs-to-be-changed>"
+CLIENT_MAX_BODY_SIZE="50M"
+SIMULTANEOUS_FILE_UPLOADS=4
 
 
 ## adding php repository
@@ -44,6 +55,12 @@ pm.max_spare_servers = 20
 pm.process_idle_timeout = 10s
 EOT
 
+# configuring php.ini
+sudo cp /etc/php/8.4/fpm/php.ini /etc/php/8.4/fpm/php.ini.bak
+sudo sed -i "s/upload_max_filesize.*/upload_max_filesize = $CLIENT_MAX_BODY_SIZE/" /etc/php/8.4/fpm/php.ini
+sudo sed -i "s/post_max_size.*/post_max_size = $CLIENT_MAX_BODY_SIZE/" /etc/php/8.4/fpm/php.ini
+sudo sed -i "s/max_file_uploads.*/max_file_uploads = $SIMULTANEOUS_FILE_UPLOADS/" /etc/php/8.4/fpm/php.ini
+
 sudo systemctl enable php8.4-fpm
 sudo systemctl start php8.4-fpm
 sudo systemctl status php8.4-fpm
@@ -74,6 +91,10 @@ npm run build
 cp .env.example .env
 
 # modify environment variables
+sed -i "s/APP_ENV=.*/APP_ENV=$APP_ENV/" .env
+# sed -i "s/APP_DEBUG=.*/APP_DEBUG=false/" .env
+sed -i "s/APP_URL=.*/APP_URL=http:\/\/$(hostname -I | cut -d' ' -f2)/" .env
+sed -i "s/MODEL_API_URL=.*/MODEL_API_URL=http:\/\/$(getent hosts $3 | cut -d' ' -f1)/" .env
 sed -i "s/DB_HOST=.*/DB_HOST=$(getent hosts $1 | cut -d' ' -f1)/" .env
 sed -i "s/DB_DATABASE=.*/DB_DATABASE=$LARAVEL_DB_NAME/" .env
 sed -i "s/DB_USERNAME=.*/DB_USERNAME=$LARAVEL_DB_USERNAME/" .env
@@ -82,14 +103,23 @@ sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=$LARAVEL_DB_PASSWORD/" .env
 sed -i "s/REDIS_HOST=.*/REDIS_HOST=$(getent hosts $2 | cut -d' ' -f1)/" .env
 sed -i "s/REDIS_PASSWORD=.*/REDIS_PASSWORD=$REDIS_PASSWORD/" .env
 
-sed -i "s/APP_DEBUG=.*/APP_DEBUG=false/" .env
-
 php artisan key:generate
 php artisan migrate
 
 sudo mv /tmp/deepscan-web /var/www/html/deepscan-web
-sudo chown -R www-data.www-data /var/www/html/deepscan-web/storage
-sudo chown -R www-data.www-data /var/www/html/deepscan-web/bootstrap/cache
+
+# Set ownership
+sudo chown -R www-data:www-data /var/www/html/deepscan-web/storage
+sudo chown -R www-data:www-data /var/www/html/deepscan-web/bootstrap/cache
+
+# Set directory permissions to 2775 (setgid bit + rwxrwxr-x)
+sudo find /var/www/html/deepscan-web/storage -type d -exec chmod 2775 {} +
+sudo find /var/www/html/deepscan-web/bootstrap/cache -type d -exec chmod 2775 {} +
+
+# Set file permissions to 0664 (rw-rw-r--)
+sudo find /var/www/html/deepscan-web/storage -type f -exec chmod 664 {} +
+sudo find /var/www/html/deepscan-web/bootstrap/cache -type f -exec chmod 664 {} +
+
 
 ### configuring nginx
 sudo tee /etc/nginx/sites-available/$PHP_FPM_POOL_USERNAME > /dev/null <<EOT
@@ -113,6 +143,8 @@ server {
 
     error_page 404 /index.php;
 
+    client_max_body_size $CLIENT_MAX_BODY_SIZE;
+
     location ~ \.php$ {
         include snippets/fastcgi-php.conf;
         fastcgi_pass unix:/var/run/php8.4-fpm-$PHP_FPM_POOL_USERNAME.sock;
@@ -133,3 +165,21 @@ sudo systemctl restart nginx
 sudo systemctl status nginx
 sudo systemctl restart php8.4-fpm
 sudo systemctl status php8.4-fpm
+
+# we will enable and start the service, once we have the redis server up and running. This is done
+# using vagrant after trigger which will ssh into redis and web VMs to add the necessary firewall rules
+# and start the Laravel Horizon process.
+
+sudo tee /etc/systemd/system/horizon.service > /dev/null <<EOT
+[Unit]
+Description=Laravel Horizon
+After=network.target
+
+[Service]
+User=vagrant
+ExecStart=/usr/bin/php /var/www/html/deepscan-web/artisan horizon
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOT

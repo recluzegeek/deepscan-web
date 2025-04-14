@@ -53,7 +53,7 @@ class DownloadVideoJob implements ShouldQueue
                     $videoPath = $downloadedFile->getPathname();
 
                     // Move the downloaded file to the configured disk
-                    $disk = Storage::disk('videos');
+                    $disk = Storage::disk('temp_videos');
                     $diskPath = $disk->putFileAs($downloadedFile, $this->filename);
 
                     // Update video record with download success and path

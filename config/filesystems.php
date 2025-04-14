@@ -44,7 +44,7 @@ return [
             'throw' => false,
         ],
 
-        'videos' => [
+        'temp_videos' => [
             'driver' => 'local',
             'root' => storage_path('app/videos'),
             'url' => env('APP_URL').'/storage',
@@ -52,18 +52,10 @@ return [
             'throw' => false,
         ],
 
-        'frames' => [
+        'temp_frames' => [
             'driver' => 'local',
             'root' => storage_path('app/frames'),
             'url' => env('APP_URL').'/storage/frames',
-            'visibility' => 'private',
-            'throw' => false,
-        ],
-
-        'gradcam_frames' => [
-            'driver' => 'local',
-            'root' => storage_path('app/frames/visualized'),
-            'url' => env('APP_URL').'/storage/frames/visualized',
             'visibility' => 'private',
             'throw' => false,
         ],
@@ -78,6 +70,32 @@ return [
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
             'throw' => false,
+        ],
+
+        'minio_frames' => [
+            'driver' => 's3',
+            'key' => env('MINIO_ACCESS_KEY_ID'),
+            'secret' => env('MINIO_SECRET_ACCESS_KEY'),
+            'region' => env('MINIO_DEFAULT_REGION'),
+            'bucket' => env('MINIO_FRAMES_BUCKET'),
+            'url' => env('MINIO_URL'),
+            'endpoint' => env('MINIO_ENDPOINT'),
+            'scheme' => env('MINIO_SCHEME', 'http'),
+            'use_path_style_endpoint' => env('MINIO_USE_PATH_STYLE_ENDPOINT', false),
+            'throw' => true,
+        ],
+
+        'minio_gradcam_frames' => [
+            'driver' => 's3',
+            'key' => env('MINIO_ACCESS_KEY_ID'),
+            'secret' => env('MINIO_SECRET_ACCESS_KEY'),
+            'region' => env('MINIO_DEFAULT_REGION'),
+            'bucket' => env('MINIO_GRADCAM_FRAMES_BUCKET'),
+            'url' => env('MINIO_URL'),
+            'endpoint' => env('MINIO_ENDPOINT'),
+            'scheme' => env('MINIO_SCHEME', 'http'),
+            'use_path_style_endpoint' => env('MINIO_USE_PATH_STYLE_ENDPOINT', false),
+            'throw' => true,
         ],
     ],
 

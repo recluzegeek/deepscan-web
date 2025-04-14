@@ -26,7 +26,6 @@ Route::get('/dashboard', function () {
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -45,7 +44,7 @@ Route::get('/frame/{video}/{type}/{filename}', function ($video, $type, $filenam
     }
 
     // Determine disk based on type
-    $disk = $type === 'visualized' ? 'gradcam_frames' : 'frames';
+    $disk = $type === 'visualized' ? 'minio_gradcam_frames' : 'minio_frames';
 
     // Check if file exists
     if (!Storage::disk($disk)->exists($filename)) {

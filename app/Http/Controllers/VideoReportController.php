@@ -92,8 +92,8 @@ class VideoReportController extends Controller
 
         try {
             $pattern = $video->video_path . '_*.jpg';
-            $original_frames = Storage::disk('frames')->files('', false);
-            $visualized_frames = Storage::disk('gradcam_frames')->files('', false);
+            $original_frames = Storage::disk('minio_frames')->files('', false);
+            $visualized_frames = Storage::disk('minio_gradcam_frames')->files('', false);
 
             // Filter frames matching the pattern
             $original_frames = array_filter($original_frames, function($frame) use ($pattern) {

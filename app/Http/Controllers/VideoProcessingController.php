@@ -9,6 +9,7 @@ use App\Jobs\FrameExtractionJob;
 use App\Models\Video;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class VideoProcessingController extends Controller
 {
@@ -17,7 +18,7 @@ class VideoProcessingController extends Controller
         $files = $request->file('video');
 
         foreach ($files as $file) {
-            $video_path = Storage::disk('videos')->put('', $file);
+            $video_path = Storage::disk('temp_videos')->put('', $file);
 
             // Create a new video record
             $video = Video::create([
@@ -26,6 +27,8 @@ class VideoProcessingController extends Controller
                 'video_status' => Video::STATUS_DOWNLOADED,
                 'user_id' => Auth::id()
             ]);
+
+            Log::info('Video uploaded: ' . $video->filename);
 
             // Dispatch the frame extraction job
             FrameExtractionJob::dispatch($video_path, $video->id);

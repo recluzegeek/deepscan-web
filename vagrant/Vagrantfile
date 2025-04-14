@@ -18,8 +18,9 @@ Vagrant.configure("2") do |config|
     minio01.vm.box = "centos/stream9"
     minio01.vm.hostname = "minio01"
     minio01.vm.network "private_network", ip: "192.168.56.5"
+    minio01.vm.synced_folder "./secrets", "/tmp/secrets", create: true
     minio01.vm.provider "virtualbox" do |vb|
-     vb.memory = "600"
+      vb.memory = "600"
    end
     minio01.vm.provision "shell", path: "minio.sh"
   end
@@ -40,24 +41,39 @@ Vagrant.configure("2") do |config|
     py01.vm.box = "ubuntu/jammy64"
     py01.vm.hostname = "py01"
     py01.vm.network "private_network", ip: "192.168.56.15"
+    py01.vm.synced_folder "./secrets", "/tmp/secrets", create: true
     py01.vm.provider "virtualbox" do |vb|
      vb.memory = "4096"
      vb.cpus = 4
    end
-    py01.vm.provision "shell", path: "fastapi.sh"
+    py01.vm.provision "shell", path: "fastapi.sh", args: "web01"
   end
 
   ### Nginx VM ###
   config.vm.define "web01" do |web01|
+
+    # Since rds01 needs to allow traffic from web01, but web01 isn’t up yet during rds01 provisioning,
+    # we use a trigger to run a firewall setup script *after* web01 is brought up.
+    # This ensures Redis on rds01 allows connections from web01 when nginx runs 
+    # (which includes starting Horizon and requires Redis access).
+
+    web01.trigger.after :up do |trigger|
+      trigger.info = "Configuring Redis firewall for web01"
+      trigger.run = {
+        inline: "bash redis-firewall.sh rds01 web01"
+      }
+    end
+
     web01.vm.box = "ubuntu/jammy64"
     web01.vm.hostname = "web01"
-  web01.vm.network "private_network", ip: "192.168.56.11"
-#  web01.vm.network "public_network"
-  web01.vm.provider "virtualbox" do |vb|
-     vb.gui = true
-     vb.memory = "800"
-   end
-  web01.vm.provision "shell", path: "nginx.sh", args: ['db01', 'rds01']
-end
+    web01.vm.network "private_network", ip: "192.168.56.10"
+    web01.vm.synced_folder "./secrets", "/tmp/secrets", create: true
+    #  web01.vm.network "public_network"
+    web01.vm.provider "virtualbox" do |vb|
+      vb.gui = true
+      vb.memory = "800"
+    end
+    web01.vm.provision "shell", path: "nginx.sh", args: ['db01', 'rds01', 'py01']
+  end
 
 end

@@ -1,4 +1,16 @@
 #!/bin/bash
+# This script installs and configures a FastAPI application on a Ubuntu 22.04 Jammy Jellyfish system.
+# It sets up a Python virtual environment, installs dependencies, and creates a systemd service for 
+# the FastAPI application. It is tightly integrated with MinIO server for downloading frames 
+# and a Laravel web application to send back inference.
+
+MINIO_ACCESS_AND_SECRETS_LOCATION="/tmp/secrets/minio-keys.txt"
+SECRETS=$(cat $MINIO_ACCESS_AND_SECRETS_LOCATION)
+MINIO_ACCESS_KEY=$(echo "$SECRETS" | head -n 1) # first line is of access key
+MINIO_SECRET_KEY=$(echo "$SECRETS" | tail -n 1) # second line is of secret key
+FRAMES_BUCKET_NAME="deepscan-frames"
+GRADCAM_FRAMES_BUCKET_NAME="gradcam-deepscan-frames"
+LARAVEL_WEB_URL=$(getent hosts $1 | cut -d' ' -f1) # translates vm name to ip address via host file
 FASTAPI_PORT=9010
 
 # Update and install dependencies
@@ -8,6 +20,16 @@ sudo apt install python3-pip python3-venv cmake libgl1 -y
 # Clone repo
 git clone https://github.com/recluzegeek/deepscan-api
 cd deepscan-api
+
+## configure api
+cp config/settings.example.yaml config/settings.yaml
+
+sed -i 's/^  endpoint:.*/  endpoint: "$(hostname -I | cut -d' ' -f2)" /' config/settings.yaml # minio endpoint
+sed -i 's/^  access_key:.*/  access_key: "$MINIO_ACCESS_KEY" /' config/settings.yaml
+sed -i 's/^  secret_key:.*/  secret_key: "$MINIO_SECRET_KEY" /' config/settings.yaml
+sed -i 's/^  frames_bucket:.*/  frames_bucket: "$FRAMES_BUCKET_NAME" /' config/settings.yaml
+sed -i 's/^  gradcam_frames_bucket:.*/  gradcam_frames_bucket: "$GRADCAM_FRAMES_BUCKET_NAME" /' config/settings.yaml
+sed -i 's/^  base_url:.*/  base_url: "$LARAVEL_WEB_URL" /' config/settings.yaml   # laravel-web app
 
 # Add swap space
 sudo fallocate -l 4G /swapfile
