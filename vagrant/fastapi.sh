@@ -8,9 +8,10 @@ MINIO_ACCESS_AND_SECRETS_LOCATION="/tmp/secrets/minio-keys.txt"
 SECRETS=$(cat $MINIO_ACCESS_AND_SECRETS_LOCATION)
 MINIO_ACCESS_KEY=$(echo "$SECRETS" | head -n 1) # first line is of access key
 MINIO_SECRET_KEY=$(echo "$SECRETS" | tail -n 1) # second line is of secret key
+MINIO_ENDPOINT=$(getent hosts $2 | cut -d' ' -f1):9000 # minio endpoint
 FRAMES_BUCKET_NAME="deepscan-frames"
 GRADCAM_FRAMES_BUCKET_NAME="gradcam-deepscan-frames"
-LARAVEL_WEB_URL=$(getent hosts $1 | cut -d' ' -f1) # translates vm name to ip address via host file
+LARAVEL_WEB_URL=http://$(getent hosts $1 | cut -d' ' -f1) # translates vm name to ip address via host file
 FASTAPI_PORT=9010
 
 # Update and install dependencies
@@ -24,12 +25,13 @@ cd deepscan-api
 ## configure api
 cp config/settings.example.yaml config/settings.yaml
 
-sed -i 's/^  endpoint:.*/  endpoint: "$(hostname -I | cut -d' ' -f2)" /' config/settings.yaml # minio endpoint
+sed -i "s/^  endpoint:.*/  endpoint: $MINIO_ENDPOINT /" config/settings.yaml # minio endpoint
 sed -i "s/^  access_key:.*/  access_key: $MINIO_ACCESS_KEY /" config/settings.yaml
 sed -i "s/^  secret_key:.*/  secret_key: $MINIO_SECRET_KEY /" config/settings.yaml
 sed -i "s/^  frames_bucket:.*/  frames_bucket: $FRAMES_BUCKET_NAME /" config/settings.yaml
 sed -i "s/^  gradcam_frames_bucket:.*/  gradcam_frames_bucket: $GRADCAM_FRAMES_BUCKET_NAME /" config/settings.yaml
-sed -i "s/^  base_url:.*/  base_url: $LARAVEL_WEB_URL /" config/settings.yaml   # laravel-web app
+# this won't work if the web vm is not up, so putting it in the after trigger script
+## sed -i "s/^  base_url:.*/  base_url: $LARAVEL_WEB_URL /" config/settings.yaml   # laravel-web app
 
 # Add swap space
 sudo fallocate -l 4G /swapfile

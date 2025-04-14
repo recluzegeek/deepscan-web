@@ -46,7 +46,7 @@ Vagrant.configure("2") do |config|
      vb.memory = "4096"
      vb.cpus = 4
    end
-    py01.vm.provision "shell", path: "fastapi.sh", args: "web01"
+    py01.vm.provision "shell", path: "fastapi.sh", args: ["web01", "minio01"]
   end
 
   ### Nginx VM ###
@@ -60,7 +60,7 @@ Vagrant.configure("2") do |config|
     web01.trigger.after :up do |trigger|
       trigger.info = "Configuring Redis firewall for web01"
       trigger.run = {
-        inline: "bash redis-firewall.sh rds01 web01"
+        inline: "bash nginx-after-trigger-provisioning.sh rds01 web01 py01"
       }
     end
 
