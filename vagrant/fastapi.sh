@@ -25,11 +25,11 @@ cd deepscan-api
 cp config/settings.example.yaml config/settings.yaml
 
 sed -i 's/^  endpoint:.*/  endpoint: "$(hostname -I | cut -d' ' -f2)" /' config/settings.yaml # minio endpoint
-sed -i 's/^  access_key:.*/  access_key: "$MINIO_ACCESS_KEY" /' config/settings.yaml
-sed -i 's/^  secret_key:.*/  secret_key: "$MINIO_SECRET_KEY" /' config/settings.yaml
-sed -i 's/^  frames_bucket:.*/  frames_bucket: "$FRAMES_BUCKET_NAME" /' config/settings.yaml
-sed -i 's/^  gradcam_frames_bucket:.*/  gradcam_frames_bucket: "$GRADCAM_FRAMES_BUCKET_NAME" /' config/settings.yaml
-sed -i 's/^  base_url:.*/  base_url: "$LARAVEL_WEB_URL" /' config/settings.yaml   # laravel-web app
+sed -i "s/^  access_key:.*/  access_key: $MINIO_ACCESS_KEY /" config/settings.yaml
+sed -i "s/^  secret_key:.*/  secret_key: $MINIO_SECRET_KEY /" config/settings.yaml
+sed -i "s/^  frames_bucket:.*/  frames_bucket: $FRAMES_BUCKET_NAME /" config/settings.yaml
+sed -i "s/^  gradcam_frames_bucket:.*/  gradcam_frames_bucket: $GRADCAM_FRAMES_BUCKET_NAME /" config/settings.yaml
+sed -i "s/^  base_url:.*/  base_url: $LARAVEL_WEB_URL /" config/settings.yaml   # laravel-web app
 
 # Add swap space
 sudo fallocate -l 4G /swapfile
@@ -42,6 +42,7 @@ free -h
 # Python environment setup
 python3 -m venv .venv
 source .venv/bin/activate
+pip install wheel
 pip install -r requirements.txt
 
 # Create log files with proper permissions
