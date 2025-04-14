@@ -73,7 +73,7 @@ Vagrant.configure("2") do |config|
       vb.gui = true
       vb.memory = "800"
     end
-    web01.vm.provision "shell", path: "nginx.sh", args: ['db01', 'rds01', 'py01']
+    web01.vm.provision "shell", path: "nginx.sh", args: ['db01', 'rds01', 'py01', 'minio01']
   end
 
 end

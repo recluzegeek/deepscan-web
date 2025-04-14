@@ -94,6 +94,7 @@ cp .env.example .env
 sed -i "s/APP_ENV=.*/APP_ENV=$APP_ENV/" .env
 # sed -i "s/APP_DEBUG=.*/APP_DEBUG=false/" .env
 sed -i "s/APP_URL=.*/APP_URL=http:\/\/$(hostname -I | cut -d' ' -f2)/" .env
+sed -i "s/SESSION_DOMAIN=.*/SESSION_DOMAIN=$(hostname -I | cut -d' ' -f2)/" .env
 sed -i "s/MODEL_API_URL=.*/MODEL_API_URL=http:\/\/$(getent hosts $3 | cut -d' ' -f1)/" .env
 sed -i "s/DB_HOST=.*/DB_HOST=$(getent hosts $1 | cut -d' ' -f1)/" .env
 sed -i "s/DB_DATABASE=.*/DB_DATABASE=$LARAVEL_DB_NAME/" .env
@@ -102,6 +103,13 @@ sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=$LARAVEL_DB_PASSWORD/" .env
 
 sed -i "s/REDIS_HOST=.*/REDIS_HOST=$(getent hosts $2 | cut -d' ' -f1)/" .env
 sed -i "s/REDIS_PASSWORD=.*/REDIS_PASSWORD=$REDIS_PASSWORD/" .env
+
+sed -i "s/MINIO_URL.*/MINIO_URL=http:\/\/$(getent hosts $4 | cut -d' ' -f1):9000/" .env
+sed -i "s/MINIO_ENDPOINT=.*/MINIO_ENDPOINT=http:\/\/$(getent hosts $4 | cut -d' ' -f1):9000/" .env
+sed -i "s/MINIO_ACCESS_KEY_ID=.*/MINIO_ACCESS_KEY_ID=$MINIO_ACCESS_KEY/" .env
+sed -i "s/MINIO_SECRET_ACCESS_KEY=.*/MINIO_SECRET_ACCESS_KEY=$MINIO_SECRET_KEY/" .env
+sed -i "s/MINIO_FRAMES_BUCKET=.*/MINIO_FRAMES_BUCKET=$FRAMES_BUCKET_NAME/" .env
+sed -i "s/MINIO_GRADCAM_FRAMES_BUCKET=.*/MINIO_GRADCAM_FRAMES_BUCKET=$GRADCAM_FRAMES_BUCKET_NAME/" .env
 
 php artisan key:generate
 php artisan migrate
