@@ -129,6 +129,9 @@ vagrant plugin install vagrant-hostmanager
     npm run build
     ```
 
+> [!IMPORTANT]
+> Before proceeding, make sure that all the necessary prerequisite programs and dependencies are properly installed on your system. This ensures that the setup process runs smoothly and avoids any issues due to missing components.
+
 ## Running the Application
 
 1. Start the development server and access on `localhost:8000`:

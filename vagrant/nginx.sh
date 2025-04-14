@@ -14,17 +14,18 @@ MINIO_ACCESS_KEY=$(echo "$SECRETS" | head -n 1) # first line is of access key
 MINIO_SECRET_KEY=$(echo "$SECRETS" | tail -n 1) # second line is of secret key
 FRAMES_BUCKET_NAME="deepscan-frames"
 GRADCAM_FRAMES_BUCKET_NAME="gradcam-deepscan-frames"
-FASTAPI_URL=$(getent hosts $1 | cut -d' ' -f1) # translates vm name to ip address via host file
+FASTAPI_PORT=9010
+FASTAPI_URL=$(getent hosts $3 | cut -d' ' -f1):$FASTAPI_PORT # translates vm name to ip address via host file
+FASTAPI_ENDPOINT="http://$FASTAPI_URL/upload"
 
 REDIS_PASSWORD="<password-needs-to-be-changed>"
 CLIENT_MAX_BODY_SIZE="50M"
 SIMULTANEOUS_FILE_UPLOADS=4
 
-
 ## adding php repository
 sudo LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/php -y
 sudo apt update && sudo apt upgrade -y
-sudo apt install nginx -y
+sudo apt install nginx ffmpeg -y
 
 # installing php along with common extensions
 sudo apt install php8.4-cli php8.4-fpm unzip -y
@@ -95,7 +96,7 @@ sed -i "s/APP_ENV=.*/APP_ENV=$APP_ENV/" .env
 # sed -i "s/APP_DEBUG=.*/APP_DEBUG=false/" .env
 sed -i "s/APP_URL=.*/APP_URL=http:\/\/$(hostname -I | cut -d' ' -f2)/" .env
 sed -i "s/SESSION_DOMAIN=.*/SESSION_DOMAIN=$(hostname -I | cut -d' ' -f2)/" .env
-sed -i "s/MODEL_API_URL=.*/MODEL_API_URL=http:\/\/$(getent hosts $3 | cut -d' ' -f1)/" .env
+sed -i "s|MODEL_API_URL=.*|MODEL_API_URL=$FASTAPI_ENDPOINT|" .env
 sed -i "s/DB_HOST=.*/DB_HOST=$(getent hosts $1 | cut -d' ' -f1)/" .env
 sed -i "s/DB_DATABASE=.*/DB_DATABASE=$LARAVEL_DB_NAME/" .env
 sed -i "s/DB_USERNAME=.*/DB_USERNAME=$LARAVEL_DB_USERNAME/" .env
@@ -184,7 +185,8 @@ Description=Laravel Horizon
 After=network.target
 
 [Service]
-User=vagrant
+User=www-data
+Group=www-data
 ExecStart=/usr/bin/php /var/www/html/deepscan-web/artisan horizon
 Restart=always
 
