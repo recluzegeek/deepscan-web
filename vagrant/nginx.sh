@@ -17,6 +17,8 @@ GRADCAM_FRAMES_BUCKET_NAME="gradcam-deepscan-frames"
 FASTAPI_URL=$(getent hosts $1 | cut -d' ' -f1) # translates vm name to ip address via host file
 
 REDIS_PASSWORD="<password-needs-to-be-changed>"
+CLIENT_MAX_BODY_SIZE="50M"
+SIMULTANEOUS_FILE_UPLOADS=4
 
 
 ## adding php repository
@@ -52,6 +54,12 @@ pm.min_spare_servers = 5
 pm.max_spare_servers = 20 
 pm.process_idle_timeout = 10s
 EOT
+
+# configuring php.ini
+sudo cp /etc/php/8.4/fpm/php.ini /etc/php/8.4/fpm/php.ini.bak
+sudo sed -i "s/upload_max_filesize.*/upload_max_filesize = $CLIENT_MAX_BODY_SIZE/" /etc/php/8.4/fpm/php.ini
+sudo sed -i "s/post_max_size.*/post_max_size = $CLIENT_MAX_BODY_SIZE/" /etc/php/8.4/fpm/php.ini
+sudo sed -i "s/max_file_uploads.*/max_file_uploads = $SIMULTANEOUS_FILE_UPLOADS/" /etc/php/8.4/fpm/php.ini
 
 sudo systemctl enable php8.4-fpm
 sudo systemctl start php8.4-fpm
@@ -134,6 +142,8 @@ server {
     location = /robots.txt  { access_log off; log_not_found off; }
 
     error_page 404 /index.php;
+
+    client_max_body_size $CLIENT_MAX_BODY_SIZE;
 
     location ~ \.php$ {
         include snippets/fastcgi-php.conf;
