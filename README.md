@@ -2,6 +2,12 @@
 
 A Laravel-based web application for analyzing videos using deep learning to detect potential deepfake video content.
 
+## Demo Video
+
+Check out my walkthrough video on LinkedIn:
+
+🎬 [Watch the LinkedIn demo – Deepfake detection, Grad-CAM visualizations, and more](https://www.linkedin.com/posts/recluzegeek_deepfakedetection-aiethics-finalyearproject-activity-7307449380221915136-X42J)
+
 ## Features
 
 - Video upload and processing
